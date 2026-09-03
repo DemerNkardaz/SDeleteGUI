@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="AddPathButton.Content" xml:space="preserve">
+    <value>Добавить путь</value>
+  </data>
+  <data name="AddPathButton.AddFiles.Text" xml:space="preserve">
+    <value>Файл(ы)</value>
+  </data>
+  <data name="AddPathButton.AddFolder.Text" xml:space="preserve">
+    <value>Папка</value>
+  </data>
+</root>

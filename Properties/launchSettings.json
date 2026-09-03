@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SDeleteGUI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "SDeleteGUI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
