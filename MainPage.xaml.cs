@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Microsoft.UI.Dispatching;
 using System.Collections.ObjectModel;
 using System.IO;
 using Microsoft.UI.Xaml;
@@ -273,12 +275,162 @@ public sealed partial class MainPage : Page
 		}
 	}
 
-    private void RunButton_Click(object sender, RoutedEventArgs e) { }
-
     private static string TruncateLabel(string label, int maxLength = 9)
     {
         return label.Length > maxLength
             ? label[..maxLength] + "…"
             : label;
     }
+
+	private async void RunButton_Click(object sender, RoutedEventArgs e)
+	{
+		SyncOptionsFromUI();
+		var errors = _options.Validate();
+		if (errors.Count > 0)
+		{
+			RefreshCommandPreview();
+			return;
+		}
+
+		var confirmed = await ShowConfirmationDialogAsync();
+		if (!confirmed)
+			return;
+
+		SetUiEnabled(false);
+		try
+		{
+			await RunSDeleteAsync();
+		}
+		finally
+		{
+			SetUiEnabled(true);
+		}
+	}
+
+	/// <summary>
+	/// Shows a confirmation dialog to the user before running sdelete, with a countdown timer on the "Yes" button.
+	/// The user must wait for the countdown to finish before they can confirm the action.
+	/// This is to prevent accidental execution of the destructive command.
+	/// </summary>
+	private async Task<bool> ShowConfirmationDialogAsync()
+	{
+		ConfirmDialogText.Text = _options.Mode == SDeleteMode.DeleteFiles
+			? "Запуск данной команды необратимо уничтожит выбранные файлы и папки. Даже используя инструменты восстановления удалённых файлов вы не сможете их восстановить.\n\nХотите продолжить?"
+			: "Запуск данной команды запустит процесс очистки свободного места на выбранных накопителях. В зависимости от объёма накопителя и размера свободного места, процесс может занять длительное время, вплоть до 10 часов и более.\n\nВ течение этого времени не используйте выбранные накопители. Безопасное удаление временно заполнит всё свободное место на них.\n\nХотите продолжить?";
+
+		const int countdownSeconds = 5;
+		var remaining = countdownSeconds;
+
+		ConfirmDialog.IsPrimaryButtonEnabled = false;
+		ConfirmDialog.PrimaryButtonText = $"Да ({remaining})";
+
+		var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+		timer.Tick += (_, _) =>
+		{
+			remaining--;
+			if (remaining <= 0)
+			{
+				timer.Stop();
+				ConfirmDialog.PrimaryButtonText = "Да";
+				ConfirmDialog.IsPrimaryButtonEnabled = true;
+			}
+			else
+			{
+				ConfirmDialog.PrimaryButtonText = $"Да ({remaining})";
+			}
+		};
+		timer.Start();
+
+		ConfirmDialog.XamlRoot = this.XamlRoot;
+		var result = await ConfirmDialog.ShowAsync();
+
+		timer.Stop();
+
+		return result == ContentDialogResult.Primary;
+	}
+
+	/// <summary>
+	/// Blocks or unblocks the main UI elements (pivot, common options panel, run button)
+	/// based on the provided boolean value.
+	/// </summary>
+	private void SetUiEnabled(bool enabled)
+	{
+		MainPivot.IsEnabled = enabled;
+		CommonOptionsPanel.IsEnabled = enabled;
+		RunButton.IsEnabled = enabled;
+	}
+
+	/// <summary>
+	/// Starts the sdelete process with the current options,
+	/// captures its output and error streams, and appends them to the OutputTextBox in real-time.
+	/// </summary>
+	private async Task RunSDeleteAsync()
+	{
+		var dispatcher = DispatcherQueue.GetForCurrentThread();
+
+		var psi = new ProcessStartInfo
+		{
+			FileName = _options.ResolveExecutablePath(),
+			UseShellExecute = false,
+			RedirectStandardOutput = true,
+			RedirectStandardError = true,
+			CreateNoWindow = true,
+		};
+		foreach (var arg in _options.BuildArguments())
+		{
+			psi.ArgumentList.Add(arg);
+		}
+
+		// App Execution Alias stub-файлы в этой папке ломают резолвинг через
+		// голый CreateProcess (в отличие от PowerShell/cmd), поэтому исключаем
+		// её из PATH, который видит только этот конкретный дочерний процесс —
+		// сама команда в превью при этом остаётся с голым именем exe.
+		var windowsAppsAlias = Path.Combine(
+			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+			"Microsoft", "WindowsApps");
+
+		var currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
+		var filteredPath = string.Join(
+			Path.PathSeparator,
+			currentPath.Split(Path.PathSeparator)
+				.Where(p => !string.Equals(p.Trim('"'), windowsAppsAlias, StringComparison.OrdinalIgnoreCase)));
+
+		psi.EnvironmentVariables["PATH"] = filteredPath;
+
+		AppendOutputLine("");
+		AppendOutputLine("--- Запуск ---");
+
+		try
+		{
+			using var process = new Process { StartInfo = psi };
+
+			process.OutputDataReceived += (_, e) =>
+			{
+				if (e.Data != null)
+					dispatcher.TryEnqueue(() => AppendOutputLine(e.Data));
+			};
+			process.ErrorDataReceived += (_, e) =>
+			{
+				if (e.Data != null)
+					dispatcher.TryEnqueue(() => AppendOutputLine(e.Data));
+			};
+
+			process.Start();
+			process.BeginOutputReadLine();
+			process.BeginErrorReadLine();
+
+			await process.WaitForExitAsync();
+
+			AppendOutputLine($"--- Завершено с кодом {process.ExitCode} ---");
+		}
+		catch (Exception ex)
+		{
+			AppendOutputLine($"--- Ошибка запуска: {ex.Message} ---");
+		}
+	}
+
+	private void AppendOutputLine(string line)
+	{
+		OutputTextBox.Text += Environment.NewLine + line;
+	}
 }

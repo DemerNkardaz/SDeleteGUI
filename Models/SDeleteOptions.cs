@@ -54,14 +54,14 @@ public class SDeleteOptions
     /// Collects the path to the selected sdelete executable based on the Executable enum and SdeleteFolderPath.
 	/// Returns the full path to the executable, or throws an exception if the path is invalid
     /// </summary>
-    public string ResolveExecutablePath()
-    {
-        var fileName = Executable == SDeleteExecutable.Sdelete64 ? "sdelete64.exe" : "sdelete.exe";
+	public string ResolveExecutablePath()
+	{
+		var fileName = Executable == SDeleteExecutable.Sdelete64 ? "sdelete64.exe" : "sdelete.exe";
 
-        return string.IsNullOrWhiteSpace(SdeleteFolderPath)
-            ? fileName
-            : Path.Combine(SdeleteFolderPath, fileName);
-    }
+		return string.IsNullOrWhiteSpace(SdeleteFolderPath)
+			? fileName
+			: Path.Combine(SdeleteFolderPath, fileName);
+	}
 
     /// <summary>
     /// Collects all the command-line arguments based on the current options and returns them as a list of strings.
@@ -131,8 +131,8 @@ public class SDeleteOptions
                 break;
         }
 
-        if (!string.IsNullOrWhiteSpace(SdeleteFolderPath) && !Directory.Exists(SdeleteFolderPath))
-            errors.Add("Указанная папка с sdelete не найдена.");
+        // if (!string.IsNullOrWhiteSpace(SdeleteFolderPath) && !Directory.Exists(SdeleteFolderPath))
+        //     errors.Add("Указанная папка с sdelete не найдена.");
 
         return errors;
     }
