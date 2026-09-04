@@ -56,7 +56,11 @@ public class SDeleteOptions
     /// </summary>
     public string ResolveExecutablePath()
     {
-        throw new NotImplementedException();
+        var fileName = Executable == SDeleteExecutable.Sdelete64 ? "sdelete64.exe" : "sdelete.exe";
+
+        return string.IsNullOrWhiteSpace(SdeleteFolderPath)
+            ? fileName
+            : Path.Combine(SdeleteFolderPath, fileName);
     }
 
     /// <summary>
@@ -65,7 +69,42 @@ public class SDeleteOptions
     /// </summary>
     public List<string> BuildArguments()
     {
-        throw new NotImplementedException();
+        var args = new List<string> { "-accepteula" };
+
+        if (Passes > 0)
+        {
+            args.Add("-p");
+            args.Add(Passes.ToString());
+        }
+
+        switch (Mode)
+        {
+            case SDeleteMode.DeleteFiles:
+                if (Recursive) args.Add("-s");
+                if (RemoveReadOnlyAttribute) args.Add("-r");
+
+                foreach (var entry in TargetPaths)
+                {
+                    var path = entry.Path;
+                    if (entry.IsDirectory && entry.ContentsOnly)
+                    {
+                        path = Path.Combine(path, "*.*");
+                    }
+                    args.Add(path);
+                }
+                break;
+
+            case SDeleteMode.CleanFreeSpace:
+                args.Add(CleanMode == CleanMode.ZeroFill ? "-z" : "-c");
+
+                foreach (var drive in SelectedDrives)
+                {
+                    args.Add(drive);
+                }
+                break;
+        }
+
+        return args;
     }
 
     /// <summary>
@@ -74,6 +113,42 @@ public class SDeleteOptions
     /// </summary>
     public List<string> Validate()
     {
-        throw new NotImplementedException();
+        var errors = new List<string>();
+
+        if (Passes < 1)
+            errors.Add("Число проходов должно быть не меньше 1.");
+
+        switch (Mode)
+        {
+            case SDeleteMode.DeleteFiles:
+                if (TargetPaths.Count == 0)
+                    errors.Add("Добавьте хотя бы один путь для удаления.");
+                break;
+
+            case SDeleteMode.CleanFreeSpace:
+                if (SelectedDrives.Count == 0)
+                    errors.Add("Выберите хотя бы один диск.");
+                break;
+        }
+
+        if (!string.IsNullOrWhiteSpace(SdeleteFolderPath) && !Directory.Exists(SdeleteFolderPath))
+            errors.Add("Указанная папка с sdelete не найдена.");
+
+        return errors;
     }
+
+    /// <summary>
+    /// Collects the full command line to run SDelete
+	/// with the current options, including the executable path and all arguments.
+    /// </summary>
+    public string BuildCommandLine()
+    {
+        var exe = QuoteIfNeeded(ResolveExecutablePath());
+        var args = BuildArguments().Select(QuoteIfNeeded);
+
+        return string.Join(' ', new[] { exe }.Concat(args));
+    }
+
+    private static string QuoteIfNeeded(string value) =>
+        value.Contains(' ') ? $"\"{value}\"" : value;
 }

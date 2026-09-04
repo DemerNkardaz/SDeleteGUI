@@ -24,9 +24,7 @@ public partial class App : Application
     private Window? _window;
 
     /// <summary>
-    /// Ссылка на главное окно приложения — нужна пикерам файлов/папок
-    /// (FileOpenPicker, FolderPicker) для инициализации через HWND
-    /// в unpackaged-приложении.
+    /// Gets the current application window.
     /// </summary>
     public static Window? MainWindow { get; private set; }
 
@@ -37,6 +35,17 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
+
+		UnhandledException += App_UnhandledException;
+
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            WriteCrashLog("AppDomain", e.ExceptionObject as Exception);
+
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+        {
+            WriteCrashLog("TaskScheduler", e.Exception);
+            e.SetObserved();
+        };
     }
 
     /// <summary>
@@ -50,11 +59,23 @@ public partial class App : Application
         _window.Activate();
     }
 
-	private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
-	{
-		e.Handled = true;
-		var log = $"{DateTime.Now}: {e.Exception}\n\n";
-		System.IO.File.AppendAllText(
-			System.IO.Path.Combine(AppContext.BaseDirectory, "crash.log"), log);
-	}
+    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        e.Handled = true;
+        WriteCrashLog("UnhandledException", e.Exception);
+    }
+
+    private static void WriteCrashLog(string source, Exception? exception)
+    {
+        try
+        {
+            var log = $"{DateTime.Now} [{source}]: {exception}\n\n";
+            System.IO.File.AppendAllText(
+                System.IO.Path.Combine(AppContext.BaseDirectory, "crash.log"), log);
+        }
+        catch
+        {
+			// Ignore any exceptions while writing the crash log
+		}
+    }
 }
