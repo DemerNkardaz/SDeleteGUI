@@ -381,10 +381,6 @@ public sealed partial class MainPage : Page
 			psi.ArgumentList.Add(arg);
 		}
 
-		// App Execution Alias stub-файлы в этой папке ломают резолвинг через
-		// голый CreateProcess (в отличие от PowerShell/cmd), поэтому исключаем
-		// её из PATH, который видит только этот конкретный дочерний процесс —
-		// сама команда в превью при этом остаётся с голым именем exe.
 		var windowsAppsAlias = Path.Combine(
 			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 			"Microsoft", "WindowsApps");
