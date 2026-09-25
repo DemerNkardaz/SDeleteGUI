@@ -368,6 +368,8 @@ public sealed partial class MainPage : Page
 	{
 		var dispatcher = DispatcherQueue.GetForCurrentThread();
 
+		RefreshProcessPath();
+
 		var psi = new ProcessStartInfo
 		{
 			FileName = _options.ResolveExecutablePath(),
@@ -380,18 +382,6 @@ public sealed partial class MainPage : Page
 		{
 			psi.ArgumentList.Add(arg);
 		}
-
-		var windowsAppsAlias = Path.Combine(
-			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			"Microsoft", "WindowsApps");
-
-		var currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
-		var filteredPath = string.Join(
-			Path.PathSeparator,
-			currentPath.Split(Path.PathSeparator)
-				.Where(p => !string.Equals(p.Trim('"'), windowsAppsAlias, StringComparison.OrdinalIgnoreCase)));
-
-		psi.EnvironmentVariables["PATH"] = filteredPath;
 
 		AppendOutputLine("");
 		AppendOutputLine("--- Запуск ---");
@@ -423,6 +413,21 @@ public sealed partial class MainPage : Page
 		{
 			AppendOutputLine($"--- Ошибка запуска: {ex.Message} ---");
 		}
+	}
+
+	/// <summary>
+	/// Refreshes the process environment PATH variable by combining the machine and user PATH variables.
+	/// </summary>
+	private static void RefreshProcessPath()
+	{
+		var machinePath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine) ?? "";
+		var userPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User) ?? "";
+
+		var combined = string.Join(
+			Path.PathSeparator,
+			new[] { machinePath, userPath }.Where(p => !string.IsNullOrWhiteSpace(p)));
+
+		Environment.SetEnvironmentVariable("PATH", combined, EnvironmentVariableTarget.Process);
 	}
 
 	private void AppendOutputLine(string line)
