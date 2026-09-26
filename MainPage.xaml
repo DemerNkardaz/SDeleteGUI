@@ -260,7 +260,6 @@
         <!-- Run button -->
         <Button Grid.Row="2"
                 x:Name="RunButton"
-                x:Uid="RunButton"
                 Click="RunButton_Click"
                 HorizontalAlignment="Stretch"
                 Style="{StaticResource AccentButtonStyle}"/>

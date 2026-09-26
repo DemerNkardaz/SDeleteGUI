@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Windows.Storage.Pickers;
+using Windows.UI;
 using WinRT.Interop;
 
 using SDeleteGUI.Models;
@@ -22,11 +23,19 @@ public sealed partial class MainPage : Page
 
 	private bool _isReady;
 
+	private bool _isRunning;
+
+	private Brush? _originalButtonBackground;
+	private Brush? _originalButtonPointerOverBackground;
+	private Brush? _originalButtonPressedBackground;
+
 	private readonly StringBuilder _outputBuffer = new();
 
 	public MainPage()
 	{
 		InitializeComponent();
+
+		RunButton.Content = Loc.Get("RunButton");
 
 		DrivesGridView.ItemsSource = _drives;
 
@@ -300,6 +309,12 @@ public sealed partial class MainPage : Page
 
 	private async void RunButton_Click(object sender, RoutedEventArgs e)
 	{
+		if (_isRunning)
+		{
+			PseudoConsoleProcessRunner.RequestStop();
+			return;
+		}
+
 		SyncOptionsFromUI();
 		var errors = _options.Validate();
 		if (errors.Count > 0)
@@ -312,14 +327,50 @@ public sealed partial class MainPage : Page
 		if (!confirmed)
 			return;
 
+		_isRunning = true;
+		UpdateRunButtonVisual();
 		SetUiEnabled(false);
+
 		try
 		{
 			await RunSDeleteAsync();
 		}
 		finally
 		{
+			_isRunning = false;
+			UpdateRunButtonVisual();
 			SetUiEnabled(true);
+		}
+	}
+
+	private void UpdateRunButtonVisual()
+	{
+		if (_isRunning)
+		{
+			_originalButtonPointerOverBackground ??= RunButton.Resources.TryGetValue("AccentButtonBackgroundPointerOver", out var po) ? po as Brush : null;
+			_originalButtonPressedBackground ??= RunButton.Resources.TryGetValue("AccentButtonBackgroundPressed", out var pr) ? pr as Brush : null;
+
+			RunButton.Background = new SolidColorBrush(Color.FromArgb(255, 196, 43, 28));
+			RunButton.Resources["AccentButtonBackgroundPointerOver"] = new SolidColorBrush(Color.FromArgb(255, 165, 34, 22));
+			RunButton.Resources["AccentButtonBackgroundPressed"] = new SolidColorBrush(Color.FromArgb(255, 137, 27, 17));
+
+			RunButton.Content = Loc.Get("StopButton");
+		}
+		else
+		{
+			RunButton.ClearValue(Button.BackgroundProperty);
+
+			if (_originalButtonPointerOverBackground is not null)
+				RunButton.Resources["AccentButtonBackgroundPointerOver"] = _originalButtonPointerOverBackground;
+			else
+				RunButton.Resources.Remove("AccentButtonBackgroundPointerOver");
+
+			if (_originalButtonPressedBackground is not null)
+				RunButton.Resources["AccentButtonBackgroundPressed"] = _originalButtonPressedBackground;
+			else
+				RunButton.Resources.Remove("AccentButtonBackgroundPressed");
+
+			RunButton.Content = Loc.Get("RunButton");
 		}
 	}
 
@@ -366,14 +417,13 @@ public sealed partial class MainPage : Page
 	}
 
 	/// <summary>
-	/// Blocks or unblocks the main UI elements (pivot, common options panel, run button)
+	/// Blocks or unblocks the main UI elements (pivot, common options panel)
 	/// based on the provided boolean value.
 	/// </summary>
 	private void SetUiEnabled(bool enabled)
 	{
 		MainPivot.IsEnabled = enabled;
 		CommonOptionsPanel.IsEnabled = enabled;
-		RunButton.IsEnabled = enabled;
 	}
 
 	private static readonly System.Text.RegularExpressions.Regex AnsiEscapeRegex =

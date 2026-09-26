@@ -129,10 +129,6 @@
     <value>Browse...</value>
   </data>
 
-  <data name="RunButton.Content" xml:space="preserve">
-    <value>Run</value>
-  </data>
-
   <data name="ConfirmDialog.Title" xml:space="preserve">
     <value>Confirmation</value>
   </data>
@@ -144,6 +140,14 @@
   </data>
 
   <!-- ====== Strings at C# files ====== -->
+
+  <data name="RunButton" xml:space="preserve">
+    <value>Run</value>
+  </data>
+
+  <data name="StopButton" xml:space="preserve">
+    <value>Interrupt</value>
+  </data>
 
   <data name="LocalDisk" xml:space="preserve">
     <value>Local disk</value>
@@ -183,6 +187,8 @@ Do you want to continue?</value>
     <value>Running this command will start cleaning free space on the selected drives. Depending on the drive size and the amount of free space, the process may take a long time, up to 10 hours or more.
 
 During this time, do not use the selected drives. Secure deletion will temporarily fill all free space on them.
+
+Note: If the operation is interrupted, temporary files may remain on the disk, occupying all free space. They will have to be deleted manually (usually files named SDELTEMP, SDELMFT in the root of the disk). The files may be hidden.
 
 Do you want to continue?</value>
   </data>

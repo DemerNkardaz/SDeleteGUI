@@ -9,6 +9,8 @@ namespace SDeleteGUI.Services;
 /// </summary>
 internal static class PseudoConsoleProcessRunner
 {
+	private static IPtyConnection? _currentTerminal;
+
 	public static async Task<int> RunAsync(
 		string exePath,
 		string[] arguments,
@@ -33,52 +35,75 @@ internal static class PseudoConsoleProcessRunner
 			.SpawnAsync(options, cancellationToken)
 			.ConfigureAwait(false);
 
-		using var readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		_currentTerminal = terminal;
 
-		var exitTcs = new TaskCompletionSource<int>(
-			TaskCreationOptions.RunContinuationsAsynchronously);
+		try {
+			using var readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-		terminal.ProcessExited += (_, e) =>
-		{
-			exitTcs.TrySetResult(e.ExitCode);
-			readCts.Cancel();
-		};
+			var exitTcs = new TaskCompletionSource<int>(
+				TaskCreationOptions.RunContinuationsAsynchronously);
 
-		var readTask = Task.Run(async () =>
-		{
-			var buffer = new byte[1024];
+			terminal.ProcessExited += (_, e) =>
+			{
+				exitTcs.TrySetResult(e.ExitCode);
+				readCts.Cancel();
+			};
+
+			var readTask = Task.Run(async () =>
+			{
+				var buffer = new byte[1024];
+				try
+				{
+					while (!readCts.IsCancellationRequested)
+					{
+						int read = await terminal.ReaderStream
+							.ReadAsync(buffer, readCts.Token)
+							.ConfigureAwait(false);
+
+						if (read == 0) break;
+
+						var text = Encoding.UTF8.GetString(buffer, 0, read);
+						onOutput(text);
+					}
+				}
+				catch (OperationCanceledException)
+				{
+				}
+			});
+
+			int exitCode = await exitTcs.Task
+				.WaitAsync(cancellationToken)
+				.ConfigureAwait(false);
+
 			try
 			{
-				while (!readCts.IsCancellationRequested)
-				{
-					int read = await terminal.ReaderStream
-						.ReadAsync(buffer, readCts.Token)
-						.ConfigureAwait(false);
-
-					if (read == 0) break;
-
-					var text = Encoding.UTF8.GetString(buffer, 0, read);
-					onOutput(text);
-				}
+				await readTask.WaitAsync(TimeSpan.FromSeconds(2), CancellationToken.None)
+							.ConfigureAwait(false);
 			}
-			catch (OperationCanceledException)
+			catch (TimeoutException)
 			{
 			}
-		});
 
-		int exitCode = await exitTcs.Task
-			.WaitAsync(cancellationToken)
-			.ConfigureAwait(false);
+			return exitCode;
+		}
+		finally
+		{
+			_currentTerminal = null;
+		}
+	}
+
+	public static void RequestStop()
+	{
+		var terminal = _currentTerminal;
+		if (terminal is null)
+			return;
 
 		try
 		{
-			await readTask.WaitAsync(TimeSpan.FromSeconds(2), CancellationToken.None)
-						.ConfigureAwait(false);
+			terminal.Kill();
 		}
-		catch (TimeoutException)
+		catch
 		{
 		}
-
-		return exitCode;
 	}
 }
