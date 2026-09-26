@@ -5,8 +5,8 @@ namespace SDeleteGUI.Models;
 /// </summary>
 public enum SDeleteMode
 {
-    DeleteFiles,
-    CleanFreeSpace
+	DeleteFiles,
+	CleanFreeSpace
 }
 
 /// <summary>
@@ -15,8 +15,8 @@ public enum SDeleteMode
 /// </summary>
 public enum CleanMode
 {
-    ZeroFill,   // -z
-    CleanFree   // -c
+	ZeroFill,   // -z
+	CleanFree   // -c
 }
 
 /// <summary>
@@ -24,8 +24,8 @@ public enum CleanMode
 /// </summary>
 public enum SDeleteExecutable
 {
-    Sdelete,
-    Sdelete64
+	Sdelete,
+	Sdelete64
 }
 
 /// <summary>
@@ -34,26 +34,26 @@ public enum SDeleteExecutable
 /// </summary>
 public class SDeleteOptions
 {
-    // Common options
-    public SDeleteExecutable Executable { get; set; } = SDeleteExecutable.Sdelete;
-    public string? SdeleteFolderPath { get; set; }
-    public int Passes { get; set; } = 3;
+	// Common options
+	public SDeleteExecutable Executable { get; set; } = SDeleteExecutable.Sdelete;
+	public string? SdeleteFolderPath { get; set; }
+	public int Passes { get; set; } = 3;
 
-    // File deletion tab options
-    public SDeleteMode Mode { get; set; } = SDeleteMode.DeleteFiles;
-    public List<PathEntry> TargetPaths { get; set; } = new();
-    public bool Recursive { get; set; }
-    public bool RemoveReadOnlyAttribute { get; set; }
-    public bool ContentsOnly { get; set; }
+	// File deletion tab options
+	public SDeleteMode Mode { get; set; } = SDeleteMode.DeleteFiles;
+	public List<PathEntry> TargetPaths { get; set; } = new();
+	public bool Recursive { get; set; }
+	public bool RemoveReadOnlyAttribute { get; set; }
+	public bool ContentsOnly { get; set; }
 
-    // Drive cleaning tab options
-    public List<string> SelectedDrives { get; set; } = new();
-    public CleanMode CleanMode { get; set; } = CleanMode.CleanFree;
+	// Drive cleaning tab options
+	public List<string> SelectedDrives { get; set; } = new();
+	public CleanMode CleanMode { get; set; } = CleanMode.CleanFree;
 
-    /// <summary>
-    /// Collects the path to the selected sdelete executable based on the Executable enum and SdeleteFolderPath.
+	/// <summary>
+	/// Collects the path to the selected sdelete executable based on the Executable enum and SdeleteFolderPath.
 	/// Returns the full path to the executable, or throws an exception if the path is invalid
-    /// </summary>
+	/// </summary>
 	public string ResolveExecutablePath()
 	{
 		var fileName = Executable == SDeleteExecutable.Sdelete64 ? "sdelete64.exe" : "sdelete.exe";
@@ -63,92 +63,93 @@ public class SDeleteOptions
 			: Path.Combine(SdeleteFolderPath, fileName);
 	}
 
-    /// <summary>
-    /// Collects all the command-line arguments based on the current options and returns them as a list of strings.
+	/// <summary>
+	/// Collects all the command-line arguments based on the current options and returns them as a list of strings.
 	/// Each argument is a separate string in the list, ready to be passed to Process.Start
-    /// </summary>
-    public List<string> BuildArguments()
-    {
-        var args = new List<string> { "-accepteula" };
+	/// </summary>
+	public List<string> BuildArguments()
+	{
+		var args = new List<string> { "-accepteula" };
 
-        if (Passes > 0)
-        {
-            args.Add("-p");
-            args.Add(Passes.ToString());
-        }
+		if (Passes > 0)
+		{
+			args.Add("-p");
+			args.Add(Passes.ToString());
+		}
 
-        switch (Mode)
-        {
-            case SDeleteMode.DeleteFiles:
-                if (Recursive) args.Add("-s");
-                if (RemoveReadOnlyAttribute) args.Add("-r");
+		switch (Mode)
+		{
+			case SDeleteMode.DeleteFiles:
+				if (Recursive) args.Add("-s");
+				if (RemoveReadOnlyAttribute) args.Add("-r");
 
-                foreach (var entry in TargetPaths)
-                {
-                    var path = entry.Path;
-                    if (entry.IsDirectory && entry.ContentsOnly)
-                    {
-                        path = Path.Combine(path, "*.*");
-                    }
-                    args.Add(path);
-                }
-                break;
+				foreach (var entry in TargetPaths)
+				{
+					var path = entry.Path;
+					if (entry.IsDirectory && entry.ContentsOnly)
+					{
+						path = Path.Combine(path, "*.*");
+					}
+					args.Add(path);
+				}
+				break;
 
-            case SDeleteMode.CleanFreeSpace:
-                args.Add(CleanMode == CleanMode.ZeroFill ? "-z" : "-c");
+			case SDeleteMode.CleanFreeSpace:
+				args.Add(CleanMode == CleanMode.ZeroFill ? "-z" : "-c");
 
-                foreach (var drive in SelectedDrives)
-                {
-                    args.Add(drive);
-                }
-                break;
-        }
+				foreach (var drive in SelectedDrives)
+				{
+					var normalized = drive.Trim().TrimEnd('\\', '/', '"');
+					args.Add(normalized);
+				}
+				break;
+		}
 
-        return args;
-    }
+		return args;
+	}
 
-    /// <summary>
-    /// Validates the current options and returns a list of error messages if any required options are missing or invalid.
+	/// <summary>
+	/// Validates the current options and returns a list of error messages if any required options are missing or invalid.
 	/// If the list is empty, the options are valid.
-    /// </summary>
-    public List<string> Validate()
-    {
-        var errors = new List<string>();
+	/// </summary>
+	public List<string> Validate()
+	{
+		var errors = new List<string>();
 
-        if (Passes < 1)
-            errors.Add("Число проходов должно быть не меньше 1.");
+		if (Passes < 1)
+			errors.Add("Число проходов должно быть не меньше 1.");
 
-        switch (Mode)
-        {
-            case SDeleteMode.DeleteFiles:
-                if (TargetPaths.Count == 0)
-                    errors.Add("Добавьте хотя бы один путь для удаления.");
-                break;
+		switch (Mode)
+		{
+			case SDeleteMode.DeleteFiles:
+				if (TargetPaths.Count == 0)
+					errors.Add("Добавьте хотя бы один путь для удаления.");
+				break;
 
-            case SDeleteMode.CleanFreeSpace:
-                if (SelectedDrives.Count == 0)
-                    errors.Add("Выберите хотя бы один диск.");
-                break;
-        }
+			case SDeleteMode.CleanFreeSpace:
+				if (SelectedDrives.Count == 0)
+					errors.Add("Выберите хотя бы один диск.");
+				break;
+		}
 
-        // if (!string.IsNullOrWhiteSpace(SdeleteFolderPath) && !Directory.Exists(SdeleteFolderPath))
-        //     errors.Add("Указанная папка с sdelete не найдена.");
+		// if (!string.IsNullOrWhiteSpace(SdeleteFolderPath) && !Directory.Exists(SdeleteFolderPath))
+		//     errors.Add("Указанная папка с sdelete не найдена.");
 
-        return errors;
-    }
+		return errors;
+	}
 
-    /// <summary>
-    /// Collects the full command line to run SDelete
+	/// <summary>
+	/// Collects the full command line to run SDelete
 	/// with the current options, including the executable path and all arguments.
-    /// </summary>
-    public string BuildCommandLine()
-    {
-        var exe = QuoteIfNeeded(ResolveExecutablePath());
-        var args = BuildArguments().Select(QuoteIfNeeded);
+	/// </summary>
+	public string BuildCommandLine()
+	{
+		var exe = QuoteIfNeeded(ResolveExecutablePath());
+		var args = BuildArguments().Select(QuoteIfNeeded);
 
-        return string.Join(' ', new[] { exe }.Concat(args));
-    }
+		return string.Join(' ', new[] { exe }.Concat(args));
+	}
 
-    private static string QuoteIfNeeded(string value) =>
-        value.Contains(' ') ? $"\"{value}\"" : value;
+	private static string QuoteIfNeeded(string value) =>
+		value.Contains(' ') ? $"\"{value}\"" : value;
 }

@@ -2,261 +2,266 @@ using System.Diagnostics;
 using Microsoft.UI.Dispatching;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using SDeleteGUI.Models;
+using Microsoft.UI.Xaml.Media;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 
+using SDeleteGUI.Models;
+using SDeleteGUI.Services;
 namespace SDeleteGUI;
 
 public sealed partial class MainPage : Page
 {
-    private readonly SDeleteOptions _options = new();
-    private readonly List<PathEntry> _pathEntries = new();
-    private readonly ObservableCollection<DriveItem> _drives = new();
+	private readonly SDeleteOptions _options = new();
+	private readonly List<PathEntry> _pathEntries = new();
+	private readonly ObservableCollection<DriveItem> _drives = new();
 
 	private bool _isReady;
 
-    public MainPage()
-    {
-        InitializeComponent();
+	private readonly StringBuilder _outputBuffer = new();
+
+	public MainPage()
+	{
+		InitializeComponent();
 
 		_isReady = true;
 
-        DrivesGridView.ItemsSource = _drives;
+		DrivesGridView.ItemsSource = _drives;
 
-        LoadDrives();
-        RefreshCommandPreview();
-    }
+		LoadDrives();
+		RefreshCommandPreview();
+	}
 
-    // Drives management
+	// Drives management
 
-    private void RefreshDrivesButton_Click(object sender, RoutedEventArgs e)
-    {
-        LoadDrives();
-        RefreshCommandPreview();
-    }
+	private void RefreshDrivesButton_Click(object sender, RoutedEventArgs e)
+	{
+		LoadDrives();
+		RefreshCommandPreview();
+	}
 
-    private void LoadDrives()
-    {
-        _drives.Clear();
+	private void LoadDrives()
+	{
+		_drives.Clear();
 
-        foreach (var drive in DriveInfo.GetDrives())
-        {
-            if (!drive.IsReady)
-                continue;
+		foreach (var drive in DriveInfo.GetDrives())
+		{
+			if (!drive.IsReady)
+				continue;
 
-            var label = string.IsNullOrWhiteSpace(drive.VolumeLabel) ? "Локальный диск" : drive.VolumeLabel;
-            var letter = drive.Name.TrimEnd('\\');
+			var label = string.IsNullOrWhiteSpace(drive.VolumeLabel) ? "Локальный диск" : drive.VolumeLabel;
+			var letter = drive.Name.TrimEnd('\\');
 
-            _drives.Add(new DriveItem
-            {
-                Name = drive.Name,
-                DriveLetter = letter,
-                DisplayName = TruncateLabel(label),
-                Glyph = GetGlyphForDriveType(drive.DriveType),
-                TotalSize = drive.TotalSize,
-                FreeSpace = drive.TotalFreeSpace
-            });
-        }
-    }
+			_drives.Add(new DriveItem
+			{
+				Name = drive.Name,
+				DriveLetter = letter,
+				DisplayName = TruncateLabel(label),
+				Glyph = GetGlyphForDriveType(drive.DriveType),
+				TotalSize = drive.TotalSize,
+				FreeSpace = drive.TotalFreeSpace
+			});
+		}
+	}
 
-    private static string GetGlyphForDriveType(DriveType type) => type switch
-    {
-        DriveType.Removable => "\uE88E",
-        DriveType.Network => "\uE8CE",
-        DriveType.CDRom => "\uE958",
-        DriveType.Ram => "\uEDA2",
-        _ => "\uEDA2",
-    };
+	private static string GetGlyphForDriveType(DriveType type) => type switch
+	{
+		DriveType.Removable => "\uE88E",
+		DriveType.Network => "\uE8CE",
+		DriveType.CDRom => "\uE958",
+		DriveType.Ram => "\uEDA2",
+		_ => "\uEDA2",
+	};
 
-    private void OnDrivesSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!_isReady) return;
-        RefreshCommandPreview();
-    }
+	private void OnDrivesSelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (!_isReady) return;
+		RefreshCommandPreview();
+	}
 
-    // Paths management
+	// Paths management
 
-    private async void AddFiles_Click(object sender, RoutedEventArgs e)
-    {
-        var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
-        picker.FileTypeFilter.Add("*");
-        InitializeWithWindow.Initialize(picker, GetWindowHandle());
+	private async void AddFiles_Click(object sender, RoutedEventArgs e)
+	{
+		var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
+		picker.FileTypeFilter.Add("*");
+		InitializeWithWindow.Initialize(picker, GetWindowHandle());
 
-        var files = await picker.PickMultipleFilesAsync();
-        foreach (var file in files)
-        {
-            AddPathRow(file.Path, isDirectory: false);
-        }
-    }
+		var files = await picker.PickMultipleFilesAsync();
+		foreach (var file in files)
+		{
+			AddPathRow(file.Path, isDirectory: false);
+		}
+	}
 
-    private async void AddFolder_Click(object sender, RoutedEventArgs e)
-    {
-        var picker = new FolderPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
-        picker.FileTypeFilter.Add("*");
-        InitializeWithWindow.Initialize(picker, GetWindowHandle());
+	private async void AddFolder_Click(object sender, RoutedEventArgs e)
+	{
+		var picker = new FolderPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
+		picker.FileTypeFilter.Add("*");
+		InitializeWithWindow.Initialize(picker, GetWindowHandle());
 
-        var folder = await picker.PickSingleFolderAsync();
-        if (folder != null)
-        {
-            AddPathRow(folder.Path, isDirectory: true);
-        }
-    }
+		var folder = await picker.PickSingleFolderAsync();
+		if (folder != null)
+		{
+			AddPathRow(folder.Path, isDirectory: true);
+		}
+	}
 
-    private void AddPathRow(string path, bool isDirectory, bool contentsOnly = false)
-    {
-        var entry = new PathEntry { Path = path, IsDirectory = isDirectory, ContentsOnly = contentsOnly };
-        _pathEntries.Add(entry);
+	private void AddPathRow(string path, bool isDirectory, bool contentsOnly = false)
+	{
+		var entry = new PathEntry { Path = path, IsDirectory = isDirectory, ContentsOnly = contentsOnly };
+		_pathEntries.Add(entry);
 
-        var row = BuildPathRow(entry);
-        PathsPanel.Children.Add(row);
+		var row = BuildPathRow(entry);
+		PathsPanel.Children.Add(row);
 
-        UpdateEmptyPathsHint();
-        RefreshCommandPreview();
-    }
+		UpdateEmptyPathsHint();
+		RefreshCommandPreview();
+	}
 
-    private FrameworkElement BuildPathRow(PathEntry entry)
-    {
-        var grid = new Grid { ColumnSpacing = 8 };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+	private FrameworkElement BuildPathRow(PathEntry entry)
+	{
+		var grid = new Grid { ColumnSpacing = 8 };
+		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        var pathTextBox = new TextBox
-        {
-            Text = entry.Path,
-            IsReadOnly = true,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        Grid.SetColumn(pathTextBox, 0);
+		var pathTextBox = new TextBox
+		{
+			Text = entry.Path,
+			IsReadOnly = true,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+		Grid.SetColumn(pathTextBox, 0);
 
-        var contentsOnlyCheckBox = new CheckBox
-        {
-            Content = "Только содержимое",
-            IsChecked = entry.ContentsOnly,
-            VerticalAlignment = VerticalAlignment.Center,
-            Visibility = entry.IsDirectory ? Visibility.Visible : Visibility.Collapsed
-        };
-        contentsOnlyCheckBox.Checked += (_, _) => { entry.ContentsOnly = true; RefreshCommandPreview(); };
-        contentsOnlyCheckBox.Unchecked += (_, _) => { entry.ContentsOnly = false; RefreshCommandPreview(); };
-        Grid.SetColumn(contentsOnlyCheckBox, 1);
+		var contentsOnlyCheckBox = new CheckBox
+		{
+			Content = "Только содержимое",
+			IsChecked = entry.ContentsOnly,
+			VerticalAlignment = VerticalAlignment.Center,
+			Visibility = entry.IsDirectory ? Visibility.Visible : Visibility.Collapsed
+		};
+		contentsOnlyCheckBox.Checked += (_, _) => { entry.ContentsOnly = true; RefreshCommandPreview(); };
+		contentsOnlyCheckBox.Unchecked += (_, _) => { entry.ContentsOnly = false; RefreshCommandPreview(); };
+		Grid.SetColumn(contentsOnlyCheckBox, 1);
 
-        var changeButton = new Button { Content = "Изменить" };
-        changeButton.Click += async (_, _) => await ChangePathAsync(entry, pathTextBox, contentsOnlyCheckBox);
-        Grid.SetColumn(changeButton, 2);
+		var changeButton = new Button { Content = "Изменить" };
+		changeButton.Click += async (_, _) => await ChangePathAsync(entry, pathTextBox, contentsOnlyCheckBox);
+		Grid.SetColumn(changeButton, 2);
 
-        var removeButton = new Button { Content = "✕" };
-        removeButton.Click += (_, _) => RemovePathRow(entry, grid);
-        Grid.SetColumn(removeButton, 3);
+		var removeButton = new Button { Content = "✕" };
+		removeButton.Click += (_, _) => RemovePathRow(entry, grid);
+		Grid.SetColumn(removeButton, 3);
 
-        grid.Children.Add(pathTextBox);
-        grid.Children.Add(contentsOnlyCheckBox);
-        grid.Children.Add(changeButton);
-        grid.Children.Add(removeButton);
+		grid.Children.Add(pathTextBox);
+		grid.Children.Add(contentsOnlyCheckBox);
+		grid.Children.Add(changeButton);
+		grid.Children.Add(removeButton);
 
-        return grid;
-    }
+		return grid;
+	}
 
-    private async Task ChangePathAsync(PathEntry entry, TextBox pathTextBox, CheckBox contentsOnlyCheckBox)
-    {
-        var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
-        picker.FileTypeFilter.Add("*");
-        InitializeWithWindow.Initialize(picker, GetWindowHandle());
+	private async Task ChangePathAsync(PathEntry entry, TextBox pathTextBox, CheckBox contentsOnlyCheckBox)
+	{
+		var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
+		picker.FileTypeFilter.Add("*");
+		InitializeWithWindow.Initialize(picker, GetWindowHandle());
 
-        var file = await picker.PickSingleFileAsync();
-        if (file != null)
-        {
-            entry.Path = file.Path;
-            entry.IsDirectory = false;
-            entry.ContentsOnly = false;
-            pathTextBox.Text = file.Path;
-            contentsOnlyCheckBox.IsChecked = false;
-            contentsOnlyCheckBox.Visibility = Visibility.Collapsed;
-            RefreshCommandPreview();
-        }
-    }
+		var file = await picker.PickSingleFileAsync();
+		if (file != null)
+		{
+			entry.Path = file.Path;
+			entry.IsDirectory = false;
+			entry.ContentsOnly = false;
+			pathTextBox.Text = file.Path;
+			contentsOnlyCheckBox.IsChecked = false;
+			contentsOnlyCheckBox.Visibility = Visibility.Collapsed;
+			RefreshCommandPreview();
+		}
+	}
 
-    private void RemovePathRow(PathEntry entry, FrameworkElement row)
-    {
-        _pathEntries.Remove(entry);
-        PathsPanel.Children.Remove(row);
-        UpdateEmptyPathsHint();
-        RefreshCommandPreview();
-    }
+	private void RemovePathRow(PathEntry entry, FrameworkElement row)
+	{
+		_pathEntries.Remove(entry);
+		PathsPanel.Children.Remove(row);
+		UpdateEmptyPathsHint();
+		RefreshCommandPreview();
+	}
 
-    private void UpdateEmptyPathsHint()
-    {
-        EmptyPathsHint.Visibility = _pathEntries.Count == 0
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-    }
+	private void UpdateEmptyPathsHint()
+	{
+		EmptyPathsHint.Visibility = _pathEntries.Count == 0
+			? Visibility.Visible
+			: Visibility.Collapsed;
+	}
 
-    private nint GetWindowHandle() => WindowNative.GetWindowHandle(App.MainWindow);
+	private nint GetWindowHandle() => WindowNative.GetWindowHandle(App.MainWindow);
 
-    // Common options
+	// Common options
 
-    private async void BrowseSdeleteFolderButton_Click(object sender, RoutedEventArgs e)
-    {
-        var picker = new FolderPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
-        picker.FileTypeFilter.Add("*");
-        InitializeWithWindow.Initialize(picker, GetWindowHandle());
+	private async void BrowseSdeleteFolderButton_Click(object sender, RoutedEventArgs e)
+	{
+		var picker = new FolderPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
+		picker.FileTypeFilter.Add("*");
+		InitializeWithWindow.Initialize(picker, GetWindowHandle());
 
-        var folder = await picker.PickSingleFolderAsync();
-        if (folder != null)
-        {
-            SdeleteFolderTextBox.Text = folder.Path;
-        }
-    }
+		var folder = await picker.PickSingleFolderAsync();
+		if (folder != null)
+		{
+			SdeleteFolderTextBox.Text = folder.Path;
+		}
+	}
 
-    private void OnOptionChanged(object sender, RoutedEventArgs e)
-    {
-        if (!_isReady) return;
-        RefreshCommandPreview();
-    }
-
-
-    private void OnPassesChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
-    {
-        if (!_isReady) return;
-        RefreshCommandPreview();
-    }
-
-    private void OnSdeleteFolderChanged(object sender, TextChangedEventArgs e)
-    {
-        if (!_isReady) return;
-        RefreshCommandPreview();
-    }
-
-    private void OnPivotSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!_isReady) return;
-        RefreshCommandPreview();
-    }
+	private void OnOptionChanged(object sender, RoutedEventArgs e)
+	{
+		if (!_isReady) return;
+		RefreshCommandPreview();
+	}
 
 
-    // Synchronization and command preview
+	private void OnPassesChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+	{
+		if (!_isReady) return;
+		RefreshCommandPreview();
+	}
 
-    private void SyncOptionsFromUI()
-    {
-        _options.Mode = MainPivot.SelectedIndex == 0 ? SDeleteMode.DeleteFiles : SDeleteMode.CleanFreeSpace;
+	private void OnSdeleteFolderChanged(object sender, TextChangedEventArgs e)
+	{
+		if (!_isReady) return;
+		RefreshCommandPreview();
+	}
 
-        _options.Executable = Sdelete64Radio.IsChecked == true ? SDeleteExecutable.Sdelete64 : SDeleteExecutable.Sdelete;
-        _options.SdeleteFolderPath = string.IsNullOrWhiteSpace(SdeleteFolderTextBox.Text) ? null : SdeleteFolderTextBox.Text;
-        _options.Passes = double.IsNaN(PassesNumberBox.Value) ? 1 : (int)PassesNumberBox.Value;
+	private void OnPivotSelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (!_isReady) return;
+		RefreshCommandPreview();
+	}
 
-        _options.TargetPaths = _pathEntries.ToList();
-        _options.Recursive = RecurseCheckBox.IsChecked == true;
-        _options.RemoveReadOnlyAttribute = RemoveReadOnlyCheckBox.IsChecked == true;
 
-        _options.SelectedDrives = DrivesGridView.SelectedItems
-            .Cast<DriveItem>()
-            .Select(d => d.Name)
-            .ToList();
-        _options.CleanMode = ZeroFillRadio.IsChecked == true ? CleanMode.ZeroFill : CleanMode.CleanFree;
-    }
+	// Synchronization and command preview
+
+	private void SyncOptionsFromUI()
+	{
+		_options.Mode = MainPivot.SelectedIndex == 0 ? SDeleteMode.DeleteFiles : SDeleteMode.CleanFreeSpace;
+
+		_options.Executable = Sdelete64Radio.IsChecked == true ? SDeleteExecutable.Sdelete64 : SDeleteExecutable.Sdelete;
+		_options.SdeleteFolderPath = string.IsNullOrWhiteSpace(SdeleteFolderTextBox.Text) ? null : SdeleteFolderTextBox.Text;
+		_options.Passes = double.IsNaN(PassesNumberBox.Value) ? 1 : (int)PassesNumberBox.Value;
+
+		_options.TargetPaths = _pathEntries.ToList();
+		_options.Recursive = RecurseCheckBox.IsChecked == true;
+		_options.RemoveReadOnlyAttribute = RemoveReadOnlyCheckBox.IsChecked == true;
+
+		_options.SelectedDrives = DrivesGridView.SelectedItems
+			.Cast<DriveItem>()
+			.Select(d => d.DriveLetter)
+			.ToList();
+		_options.CleanMode = ZeroFillRadio.IsChecked == true ? CleanMode.ZeroFill : CleanMode.CleanFree;
+	}
 
 	private void RefreshCommandPreview()
 	{
@@ -265,22 +270,30 @@ public sealed partial class MainPage : Page
 			SyncOptionsFromUI();
 			var errors = _options.Validate();
 
-			OutputTextBox.Text = errors.Count > 0
+			var previewText = errors.Count > 0
 				? "Команда не может быть сформирована:\n" + string.Join('\n', errors.Select(err => "- " + err))
 				: "$ " + _options.BuildCommandLine();
+
+			_outputBuffer.Clear();
+			_outputBuffer.AppendLine(previewText);
+
+			OutputTextBox.Text = previewText;
 		}
 		catch (Exception ex)
 		{
-			OutputTextBox.Text = $"[Внутренняя ошибка при построении команды]\n{ex}";
+			var errorText = $"[Внутренняя ошибка при построении команды]\n{ex}";
+			_outputBuffer.Clear();
+			_outputBuffer.AppendLine(errorText);
+			OutputTextBox.Text = errorText;
 		}
 	}
 
-    private static string TruncateLabel(string label, int maxLength = 9)
-    {
-        return label.Length > maxLength
-            ? label[..maxLength] + "…"
-            : label;
-    }
+	private static string TruncateLabel(string label, int maxLength = 9)
+	{
+		return label.Length > maxLength
+			? label[..maxLength] + "…"
+			: label;
+	}
 
 	private async void RunButton_Click(object sender, RoutedEventArgs e)
 	{
@@ -360,6 +373,10 @@ public sealed partial class MainPage : Page
 		RunButton.IsEnabled = enabled;
 	}
 
+	private static readonly System.Text.RegularExpressions.Regex AnsiEscapeRegex =
+		new(@"\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\a]*\a",
+		System.Text.RegularExpressions.RegexOptions.Compiled);
+
 	/// <summary>
 	/// Starts the sdelete process with the current options,
 	/// captures its output and error streams, and appends them to the OutputTextBox in real-time.
@@ -367,51 +384,51 @@ public sealed partial class MainPage : Page
 	private async Task RunSDeleteAsync()
 	{
 		var dispatcher = DispatcherQueue.GetForCurrentThread();
-
 		RefreshProcessPath();
 
-		var psi = new ProcessStartInfo
+		var pending = new StringBuilder();
+
+
+		void OnOutput(string chunk)
 		{
-			FileName = _options.ResolveExecutablePath(),
-			UseShellExecute = false,
-			RedirectStandardOutput = true,
-			RedirectStandardError = true,
-			CreateNoWindow = true,
-		};
-		foreach (var arg in _options.BuildArguments())
-		{
-			psi.ArgumentList.Add(arg);
+			var cleaned = AnsiEscapeRegex.Replace(chunk, string.Empty);
+
+			if (string.IsNullOrEmpty(cleaned)) return;
+
+			pending.Append(cleaned);
+			while (true)
+			{
+				var text = pending.ToString();
+				var newlineIndex = text.IndexOfAny(new[] { '\n', '\r' });
+				if (newlineIndex < 0) break;
+
+				var line = text[..newlineIndex];
+				pending.Clear();
+				pending.Append(text[(newlineIndex + 1)..]);
+
+				if (line.Length == 0) continue;
+
+				dispatcher.TryEnqueue(() => AppendOutputLine(line));
+			}
 		}
 
-		AppendOutputLine("");
-		AppendOutputLine("--- Запуск ---");
+		AppendOutputLine("~ Запуск команды");
 
 		try
 		{
-			using var process = new Process { StartInfo = psi };
+			var exitCode = await PseudoConsoleProcessRunner.RunAsync(
+				_options.ResolveExecutablePath(),
+				_options.BuildArguments().ToArray(),
+				OnOutput);
 
-			process.OutputDataReceived += (_, e) =>
-			{
-				if (e.Data != null)
-					dispatcher.TryEnqueue(() => AppendOutputLine(e.Data));
-			};
-			process.ErrorDataReceived += (_, e) =>
-			{
-				if (e.Data != null)
-					dispatcher.TryEnqueue(() => AppendOutputLine(e.Data));
-			};
+			if (pending.Length > 0)
+				AppendOutputLine(pending.ToString());
 
-			process.Start();
-			process.BeginOutputReadLine();
-			process.BeginErrorReadLine();
-
-			await process.WaitForExitAsync();
-
-			AppendOutputLine($"--- Завершено с кодом {process.ExitCode} ---");
+			AppendOutputLine($"~ Завершено с кодом {exitCode}");
 		}
 		catch (Exception ex)
 		{
-			AppendOutputLine($"--- Ошибка запуска: {ex.Message} ---");
+			AppendOutputLine($"~ Ошибка запуска: {ex.Message}");
 		}
 	}
 
@@ -432,6 +449,13 @@ public sealed partial class MainPage : Page
 
 	private void AppendOutputLine(string line)
 	{
-		OutputTextBox.Text += Environment.NewLine + line;
+		_outputBuffer.AppendLine(line);
+
+		OutputTextBox.Text = _outputBuffer.ToString();
+
+		// Ключевой момент: возвращаем каретку в конец, чтобы TextBox
+		// сам прокрутился вниз, а не сбросился в начало.
+		OutputTextBox.SelectionStart = OutputTextBox.Text.Length;
+		OutputTextBox.SelectionLength = 0;
 	}
 }
