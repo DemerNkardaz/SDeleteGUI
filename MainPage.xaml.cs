@@ -58,6 +58,7 @@ public sealed partial class MainPage : Page
 		_isReady = true;
 
 		RefreshCommandPreview();
+
 	}
 
 	public async Task<bool> ConfirmCloseWhileRunningAsync()
@@ -178,7 +179,7 @@ public sealed partial class MainPage : Page
 			if (trimmed.Length == 0) continue;
 
 			if (DriveRootRegex.IsMatch(trimmed))
-				driveArgs.Add(trimmed.TrimEnd('\\').ToUpperInvariant() + "\\");
+				driveArgs.Add(trimmed.TrimEnd('\\').ToUpperInvariant());
 			else if (Directory.Exists(trimmed) || File.Exists(trimmed))
 				pathArgs.Add(trimmed);
 		}
@@ -192,7 +193,7 @@ public sealed partial class MainPage : Page
 		else if (driveArgs.Count > 0)
 		{
 			MainPivot.SelectedIndex = 1;
-			foreach (var item in _drives.Where(d => driveArgs.Contains(d.Name, StringComparer.OrdinalIgnoreCase)))
+			foreach (var item in _drives.Where(d => driveArgs.Contains(d.DriveLetter, StringComparer.OrdinalIgnoreCase)))
 				DrivesGridView.SelectedItems.Add(item);
 		}
 	}
@@ -710,30 +711,26 @@ public sealed partial class MainPage : Page
 			SdeleteNotFoundInfoBar.Message = Loc.Get("SdeleteNotFound");
 			SdeleteNotFoundInfoBar.IsOpen = true;
 		}
+		System.Diagnostics.Debug.WriteLine($"[SdeleteCheck] found={found}");
 	}
 
 	private static bool IsExecutableInPath(string fileName)
 	{
-		var path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
-		if (string.IsNullOrWhiteSpace(path))
-			return false;
+		var path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process) ?? "";
+		System.Diagnostics.Debug.WriteLine($"[Sdelete] IsExecutableInPath: looking for '{fileName}'");
+		System.Diagnostics.Debug.WriteLine($"[Sdelete] PATH = {path}");
 
 		foreach (var dir in path.Split(Path.PathSeparator))
 		{
-			if (string.IsNullOrWhiteSpace(dir))
-				continue;
-
+			if (string.IsNullOrWhiteSpace(dir)) continue;
 			try
 			{
 				var fullPath = Path.Combine(dir.Trim('"'), fileName);
-				if (File.Exists(fullPath))
-					return true;
+				System.Diagnostics.Debug.WriteLine($"[Sdelete]   checking {fullPath} → {File.Exists(fullPath)}");
+				if (File.Exists(fullPath)) return true;
 			}
-			catch
-			{
-			}
+			catch { }
 		}
-
 		return false;
 	}
 

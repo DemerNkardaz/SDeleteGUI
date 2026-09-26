@@ -2,45 +2,22 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build Release",
-            "type": "process",
+            "label": "build",
             "command": "dotnet",
+            "type": "process",
             "args": [
                 "build",
+                "${workspaceFolder}/SDeleteGUI.csproj",
                 "-c",
-                "Release"
+                "Debug",
+                "-r",
+                "win-x64"
             ],
-            "group": "build",
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "Build Debug",
-            "type": "process",
-            "command": "dotnet",
-            "args": [
-                "build",
-                "-c",
-                "Debug"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "Run",
-            "type": "process",
-            "command": "dotnet",
-            "args": [
-                "run"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "Clean",
-            "type": "process",
-            "command": "dotnet",
-            "args": [
-                "clean"
-            ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

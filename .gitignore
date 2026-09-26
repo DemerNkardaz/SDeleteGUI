@@ -54,3 +54,5 @@ Generated\ Files/
 *_wpftmp.csproj
 
 *~lock
+
+installer/Output
