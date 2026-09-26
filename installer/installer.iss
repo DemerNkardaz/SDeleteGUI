@@ -77,52 +77,45 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Registry]
-; ============================================================
-; Context menu entries for the current user (HKCU\Software\Classes).
-; MultiSelectModel=Player allows multi-selection; Windows will
-; launch one process per selected file (single-instance IPC is
-; planned to consolidate them into one window).
-; ============================================================
-
 ; --- Files ---
-Root: HKCU; Subkey: "Software\Classes\*\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\*\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "MUIVerb"; ValueData: "Безопасно удалить"; Languages: russian; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\*\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\*\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "MUIVerb"; ValueData: "Secure delete"; Languages: english; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\*\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\*\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "Icon"; ValueData: "{app}\{#MyAppExeName}"; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\*\shell\SDeleteGUI"; ValueType: string; \
-    ValueName: "MultiSelectModel"; ValueData: "Player"; \
+Root: HKCU; Subkey: "Software\Classes\*\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
+    ValueName: "MultiSelectModel"; ValueData: "Single"; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\*\shell\SDeleteGUI\command"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\*\shell\Nkardaz.SDeleteGUI\command"; ValueType: string; \
     ValueData: """{app}\{#MyAppExeName}"" ""%1"""; \
     Flags: uninsdeletekey
 
 ; --- Directories ---
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "MUIVerb"; ValueData: "Безопасно удалить"; Languages: russian; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "MUIVerb"; ValueData: "Secure delete"; Languages: english; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "Icon"; ValueData: "{app}\{#MyAppExeName}"; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\SDeleteGUI"; ValueType: string; \
-    ValueName: "MultiSelectModel"; ValueData: "Player"; \
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
+    ValueName: "MultiSelectModel"; ValueData: "Single"; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\SDeleteGUI\command"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\Nkardaz.SDeleteGUI\command"; ValueType: string; \
     ValueData: """{app}\{#MyAppExeName}"" ""%1"""; \
     Flags: uninsdeletekey
 
 ; --- Directory background (empty space inside folder) ---
-Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "MUIVerb"; ValueData: "Очистить свободное место"; Languages: russian; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "MUIVerb"; ValueData: "Clean free space"; Languages: english; \
     Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\SDeleteGUI"; ValueType: string; \
@@ -133,15 +126,15 @@ Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\SDeleteGUI\comm
     Flags: uninsdeletekey
 
 ; --- Drives ---
-Root: HKCU; Subkey: "Software\Classes\Drive\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\Drive\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "MUIVerb"; ValueData: "Очистить свободное место"; Languages: russian; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Drive\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\Drive\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "MUIVerb"; ValueData: "Clean free space"; Languages: english; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Drive\shell\SDeleteGUI"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\Drive\shell\Nkardaz.SDeleteGUI"; ValueType: string; \
     ValueName: "Icon"; ValueData: "{app}\{#MyAppExeName}"; \
     Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Drive\shell\SDeleteGUI\command"; ValueType: string; \
+Root: HKCU; Subkey: "Software\Classes\Drive\shell\Nkardaz.SDeleteGUI\command"; ValueType: string; \
     ValueData: """{app}\{#MyAppExeName}"" %V"; \
     Flags: uninsdeletekey
