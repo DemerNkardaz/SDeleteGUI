@@ -75,14 +75,14 @@
   <data name="EmptyPathsHint.Text" xml:space="preserve">
     <value>Пути не добавлены</value>
   </data>
-  <data name="AddPathButton.Content" xml:space="preserve">
-    <value>Добавить путь</value>
+  <data name="AddFilesButton.Content" xml:space="preserve">
+    <value>Добавить файл(ы)</value>
   </data>
-  <data name="AddFilesMenuItem.Text" xml:space="preserve">
-    <value>Файл(ы)</value>
+  <data name="AddFolderButton.Content" xml:space="preserve">
+    <value>Добавить папку</value>
   </data>
-  <data name="AddFolderMenuItem.Text" xml:space="preserve">
-    <value>Папка</value>
+  <data name="ClearPathsButton.Content" xml:space="preserve">
+    <value>Очистить</value>
   </data>
   <data name="RecurseCheckBox.Content" xml:space="preserve">
     <value>Рекурсивно</value>

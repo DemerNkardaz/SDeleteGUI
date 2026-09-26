@@ -285,6 +285,20 @@ public sealed partial class MainPage : Page
 		RefreshCommandPreview();
 	}
 
+	private void ClearPathsButton_Click(object sender, RoutedEventArgs e)
+	{
+		_pathEntries.Clear();
+
+		for (var i = PathsPanel.Children.Count - 1; i >= 0; i--)
+		{
+			if (!ReferenceEquals(PathsPanel.Children[i], EmptyPathsHint))
+				PathsPanel.Children.RemoveAt(i);
+		}
+
+		UpdateEmptyPathsHint();
+		RefreshCommandPreview();
+	}
+
 	private FrameworkElement BuildPathRow(PathEntry entry)
 	{
 		var grid = new Grid { ColumnSpacing = 8 };
@@ -575,7 +589,11 @@ public sealed partial class MainPage : Page
 	private void SetUiEnabled(bool enabled)
 	{
 		MainPivot.IsEnabled = enabled;
-		CommonOptionsPanel.IsEnabled = enabled;
+
+		Use64BitCheckBox.IsEnabled = enabled;
+		PassesNumberBox.IsEnabled = enabled;
+		SdeleteFolderTextBox.IsEnabled = enabled;
+		BrowseSdeleteFolderButton.IsEnabled = enabled;
 	}
 
 	private static readonly System.Text.RegularExpressions.Regex AnsiEscapeRegex =

@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "Secure Delete Interface"
-#define MyAppVersion "1.0.0-beta"
+#define MyAppVersion "1.1.0-beta"
 #define MyAppPublisher "Yalla Nkardaz"
 #define MyAppURL "https://github.com/DemerNkardaz/SDeleteGUI"
 #define MyAppExeName "SDeleteGUI.exe"

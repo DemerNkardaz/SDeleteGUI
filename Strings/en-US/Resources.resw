@@ -75,14 +75,14 @@
   <data name="EmptyPathsHint.Text" xml:space="preserve">
     <value>No paths added</value>
   </data>
-  <data name="AddPathButton.Content" xml:space="preserve">
-    <value>Add path</value>
+  <data name="AddFilesButton.Content" xml:space="preserve">
+    <value>Add file(s)</value>
   </data>
-  <data name="AddFilesMenuItem.Text" xml:space="preserve">
-    <value>File(s)</value>
+  <data name="AddFolderButton.Content" xml:space="preserve">
+    <value>Add folder</value>
   </data>
-  <data name="AddFolderMenuItem.Text" xml:space="preserve">
-    <value>Folder</value>
+  <data name="ClearPathsButton.Content" xml:space="preserve">
+    <value>Clear</value>
   </data>
   <data name="RecurseCheckBox.Content" xml:space="preserve">
     <value>Recursive</value>
