@@ -4,7 +4,7 @@ A WinUI 3 wrapper around Sysinternals SDelete. It provides a graphical
 interface for the same command-line tool: pick files or drives, set the
 flags, and see the output as it appears.
 
-![1790415053640](Media/SDEL001.png) ![1790415053640](Media/SDEL002.png)
+<img src="Media/SDEL001.png" width="350"> <img src="Media/SDEL002.png" width="3560">
 
 ## What it does
 
