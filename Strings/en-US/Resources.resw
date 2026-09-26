@@ -142,4 +142,71 @@
   <data name="ConfirmDialog.CloseButtonText" xml:space="preserve">
     <value>No</value>
   </data>
+
+  <!-- ====== Strings at C# files ====== -->
+
+  <data name="LocalDisk" xml:space="preserve">
+    <value>Local disk</value>
+  </data>
+
+  <data name="ContentsOnlyCheckBox" xml:space="preserve">
+    <value>Contents only</value>
+  </data>
+
+  <data name="ChangePathButton" xml:space="preserve">
+    <value>Change</value>
+  </data>
+
+  <data name="ValidationPassesTooSmall" xml:space="preserve">
+    <value>Passes count must be at least 1.</value>
+  </data>
+  <data name="ValidationNoPaths" xml:space="preserve">
+    <value>Add at least one path to delete.</value>
+  </data>
+  <data name="ValidationNoDrives" xml:space="preserve">
+    <value>Select at least one drive.</value>
+  </data>
+
+  <data name="CommandCannotBeBuilt" xml:space="preserve">
+    <value>Command cannot be built:</value>
+  </data>
+  <data name="CommandBuildInternalError" xml:space="preserve">
+    <value>[Internal error while building the command]</value>
+  </data>
+
+  <data name="ConfirmDialogDeleteFilesText" xml:space="preserve">
+    <value>Running this command will irreversibly destroy the selected files and folders. Even with file recovery tools you will not be able to restore them.
+
+Do you want to continue?</value>
+  </data>
+  <data name="ConfirmDialogCleanFreeSpaceText" xml:space="preserve">
+    <value>Running this command will start cleaning free space on the selected drives. Depending on the drive size and the amount of free space, the process may take a long time, up to 10 hours or more.
+
+During this time, do not use the selected drives. Secure deletion will temporarily fill all free space on them.
+
+Do you want to continue?</value>
+  </data>
+  <data name="ConfirmDialogYesCountdown" xml:space="preserve">
+    <value>Yes ({0})</value>
+  </data>
+  <data name="ConfirmDialogYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+
+  <data name="RunCommandStarted" xml:space="preserve">
+    <value>~ Command started</value>
+  </data>
+  <data name="RunCommandCompleted" xml:space="preserve">
+    <value>~ Completed with exit code {0}</value>
+  </data>
+  <data name="RunCommandError" xml:space="preserve">
+    <value>~ Launch error: {0}</value>
+  </data>
+
+  <data name="UnitGB" xml:space="preserve">
+    <value>GB</value>
+  </data>
+  <data name="UnitMB" xml:space="preserve">
+    <value>MB</value>
+  </data>
 </root>

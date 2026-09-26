@@ -1,3 +1,5 @@
+using SDeleteGUI.Services;
+
 namespace SDeleteGUI.Models;
 
 /// <summary>
@@ -56,7 +58,7 @@ public class SDeleteOptions
 	/// </summary>
 	public string ResolveExecutablePath()
 	{
-		var fileName = Executable == SDeleteExecutable.Sdelete64 ? "sdelete64.exe" : "sdelete.exe";
+		var fileName = Executable == SDeleteExecutable.Sdelete64 ? "sdelete64" : "sdelete";
 
 		return string.IsNullOrWhiteSpace(SdeleteFolderPath)
 			? fileName
@@ -117,23 +119,20 @@ public class SDeleteOptions
 		var errors = new List<string>();
 
 		if (Passes < 1)
-			errors.Add("Число проходов должно быть не меньше 1.");
+			errors.Add(Services.Loc.Get("ValidationPassesTooSmall"));
 
 		switch (Mode)
 		{
 			case SDeleteMode.DeleteFiles:
 				if (TargetPaths.Count == 0)
-					errors.Add("Добавьте хотя бы один путь для удаления.");
+					errors.Add(Services.Loc.Get("ValidationNoPaths"));
 				break;
 
 			case SDeleteMode.CleanFreeSpace:
 				if (SelectedDrives.Count == 0)
-					errors.Add("Выберите хотя бы один диск.");
+					errors.Add(Services.Loc.Get("ValidationNoDrives"));
 				break;
 		}
-
-		// if (!string.IsNullOrWhiteSpace(SdeleteFolderPath) && !Directory.Exists(SdeleteFolderPath))
-		//     errors.Add("Указанная папка с sdelete не найдена.");
 
 		return errors;
 	}

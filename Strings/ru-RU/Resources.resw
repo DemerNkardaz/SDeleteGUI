@@ -142,4 +142,71 @@
   <data name="ConfirmDialog.CloseButtonText" xml:space="preserve">
     <value>Нет</value>
   </data>
+
+  <!-- ====== Строки в C# файлах ====== -->
+
+  <data name="LocalDisk" xml:space="preserve">
+    <value>Локальный диск</value>
+  </data>
+
+  <data name="ContentsOnlyCheckBox" xml:space="preserve">
+    <value>Только содержимое</value>
+  </data>
+
+  <data name="ChangePathButton" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+
+  <data name="ValidationPassesTooSmall" xml:space="preserve">
+    <value>Число проходов должно быть не меньше 1.</value>
+  </data>
+  <data name="ValidationNoPaths" xml:space="preserve">
+    <value>Добавьте хотя бы один путь для удаления.</value>
+  </data>
+  <data name="ValidationNoDrives" xml:space="preserve">
+    <value>Выберите хотя бы один диск.</value>
+  </data>
+
+  <data name="CommandCannotBeBuilt" xml:space="preserve">
+    <value>Команда не может быть сформирована:</value>
+  </data>
+  <data name="CommandBuildInternalError" xml:space="preserve">
+    <value>[Внутренняя ошибка при построении команды]</value>
+  </data>
+
+  <data name="ConfirmDialogDeleteFilesText" xml:space="preserve">
+    <value>Запуск данной команды необратимо уничтожит выбранные файлы и папки. Даже используя инструменты восстановления удалённых файлов вы не сможете их восстановить.
+
+Хотите продолжить?</value>
+  </data>
+  <data name="ConfirmDialogCleanFreeSpaceText" xml:space="preserve">
+    <value>Запуск данной команды запустит процесс очистки свободного места на выбранных накопителях. В зависимости от объёма накопителя и размера свободного места, процесс может занять длительное время, вплоть до 10 часов и более.
+
+В течение этого времени не используйте выбранные накопители. Безопасное удаление временно заполнит всё свободное место на них.
+
+Хотите продолжить?</value>
+  </data>
+  <data name="ConfirmDialogYesCountdown" xml:space="preserve">
+    <value>Да ({0})</value>
+  </data>
+  <data name="ConfirmDialogYes" xml:space="preserve">
+    <value>Да</value>
+  </data>
+
+  <data name="RunCommandStarted" xml:space="preserve">
+    <value>~ Запуск команды</value>
+  </data>
+  <data name="RunCommandCompleted" xml:space="preserve">
+    <value>~ Завершено с кодом {0}</value>
+  </data>
+  <data name="RunCommandError" xml:space="preserve">
+    <value>~ Ошибка запуска: {0}</value>
+  </data>
+
+  <data name="UnitGB" xml:space="preserve">
+    <value>ГБ</value>
+  </data>
+  <data name="UnitMB" xml:space="preserve">
+    <value>МБ</value>
+  </data>
 </root>

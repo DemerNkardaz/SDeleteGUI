@@ -57,7 +57,7 @@ public sealed partial class MainPage : Page
 			if (!drive.IsReady)
 				continue;
 
-			var label = string.IsNullOrWhiteSpace(drive.VolumeLabel) ? "Локальный диск" : drive.VolumeLabel;
+			var label = string.IsNullOrWhiteSpace(drive.VolumeLabel) ? Loc.Get("LocalDisk") : drive.VolumeLabel;
 			var letter = drive.Name.TrimEnd('\\');
 
 			_drives.Add(new DriveItem
@@ -145,7 +145,7 @@ public sealed partial class MainPage : Page
 
 		var contentsOnlyCheckBox = new CheckBox
 		{
-			Content = "Только содержимое",
+			Content = Loc.Get("ContentsOnlyCheckBox"),
 			IsChecked = entry.ContentsOnly,
 			VerticalAlignment = VerticalAlignment.Center,
 			Visibility = entry.IsDirectory ? Visibility.Visible : Visibility.Collapsed
@@ -154,7 +154,7 @@ public sealed partial class MainPage : Page
 		contentsOnlyCheckBox.Unchecked += (_, _) => { entry.ContentsOnly = false; RefreshCommandPreview(); };
 		Grid.SetColumn(contentsOnlyCheckBox, 1);
 
-		var changeButton = new Button { Content = "Изменить" };
+		var changeButton = new Button { Content = Loc.Get("ChangePathButton") };
 		changeButton.Click += async (_, _) => await ChangePathAsync(entry, pathTextBox, contentsOnlyCheckBox);
 		Grid.SetColumn(changeButton, 2);
 
@@ -274,7 +274,7 @@ public sealed partial class MainPage : Page
 			var errors = _options.Validate();
 
 			var previewText = errors.Count > 0
-				? "Команда не может быть сформирована:\n" + string.Join('\n', errors.Select(err => "- " + err))
+				? Loc.Get("CommandCannotBeBuilt") + "\n" + string.Join('\n', errors.Select(err => "- " + err))
 				: "$ " + _options.BuildCommandLine();
 
 			_outputBuffer.Clear();
@@ -284,7 +284,7 @@ public sealed partial class MainPage : Page
 		}
 		catch (Exception ex)
 		{
-			var errorText = $"[Внутренняя ошибка при построении команды]\n{ex}";
+			var errorText = $"{Loc.Get("CommandBuildInternalError")}\n{ex}";
 			_outputBuffer.Clear();
 			_outputBuffer.AppendLine(errorText);
 			OutputTextBox.Text = errorText;
@@ -331,14 +331,14 @@ public sealed partial class MainPage : Page
 	private async Task<bool> ShowConfirmationDialogAsync()
 	{
 		ConfirmDialogText.Text = _options.Mode == SDeleteMode.DeleteFiles
-			? "Запуск данной команды необратимо уничтожит выбранные файлы и папки. Даже используя инструменты восстановления удалённых файлов вы не сможете их восстановить.\n\nХотите продолжить?"
-			: "Запуск данной команды запустит процесс очистки свободного места на выбранных накопителях. В зависимости от объёма накопителя и размера свободного места, процесс может занять длительное время, вплоть до 10 часов и более.\n\nВ течение этого времени не используйте выбранные накопители. Безопасное удаление временно заполнит всё свободное место на них.\n\nХотите продолжить?";
+			? Loc.Get("ConfirmDialogDeleteFilesText")
+			: Loc.Get("ConfirmDialogCleanFreeSpaceText");
 
 		const int countdownSeconds = 5;
 		var remaining = countdownSeconds;
 
 		ConfirmDialog.IsPrimaryButtonEnabled = false;
-		ConfirmDialog.PrimaryButtonText = $"Да ({remaining})";
+		ConfirmDialog.PrimaryButtonText = Loc.Format("ConfirmDialogYesCountdown", remaining);
 
 		var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 		timer.Tick += (_, _) =>
@@ -347,12 +347,12 @@ public sealed partial class MainPage : Page
 			if (remaining <= 0)
 			{
 				timer.Stop();
-				ConfirmDialog.PrimaryButtonText = "Да";
+				ConfirmDialog.PrimaryButtonText = Loc.Get("ConfirmDialogYes");
 				ConfirmDialog.IsPrimaryButtonEnabled = true;
 			}
 			else
 			{
-				ConfirmDialog.PrimaryButtonText = $"Да ({remaining})";
+				ConfirmDialog.PrimaryButtonText = Loc.Format("ConfirmDialogYesCountdown", remaining);
 			}
 		};
 		timer.Start();
@@ -414,7 +414,7 @@ public sealed partial class MainPage : Page
 			}
 		}
 
-		AppendOutputLine("~ Запуск команды");
+		AppendOutputLine(Loc.Get("RunCommandStarted"));
 
 		try
 		{
@@ -426,11 +426,11 @@ public sealed partial class MainPage : Page
 			if (pending.Length > 0)
 				AppendOutputLine(pending.ToString());
 
-			AppendOutputLine($"~ Завершено с кодом {exitCode}");
+			AppendOutputLine(Loc.Format("RunCommandCompleted", exitCode));
 		}
 		catch (Exception ex)
 		{
-			AppendOutputLine($"~ Ошибка запуска: {ex.Message}");
+			AppendOutputLine(Loc.Format("RunCommandError", ex.Message));
 		}
 	}
 
@@ -460,31 +460,26 @@ public sealed partial class MainPage : Page
 	}
 
 	// Settings
+
 	private void ApplySettingsToUI(AppSettings settings)
 	{
-		// Executable
 		if (string.Equals(settings.Executable, "Sdelete64", StringComparison.OrdinalIgnoreCase))
 			Sdelete64Radio.IsChecked = true;
 		else
 			Sdelete32Radio.IsChecked = true;
 
-		// Passes
 		PassesNumberBox.Value = settings.Passes < 1 ? 1 : settings.Passes;
 
-		// sdelete folder
 		SdeleteFolderTextBox.Text = settings.SdeleteFolderPath ?? string.Empty;
 
-		// File deletion options
 		RecurseCheckBox.IsChecked = settings.Recursive;
 		RemoveReadOnlyCheckBox.IsChecked = settings.RemoveReadOnlyAttribute;
 
-		// Clean mode
 		if (string.Equals(settings.CleanMode, "ZeroFill", StringComparison.OrdinalIgnoreCase))
 			ZeroFillRadio.IsChecked = true;
 		else
 			CleanFreeRadio.IsChecked = true;
 
-		// Active tab
 		MainPivot.SelectedIndex = string.Equals(settings.Mode, "CleanFreeSpace", StringComparison.OrdinalIgnoreCase)
 			? 1
 			: 0;
