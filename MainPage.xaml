@@ -10,7 +10,7 @@
 
     <Grid Padding="16" RowSpacing="12">
         <Grid.RowDefinitions>
-						<!-- Tabs -->
+            <!-- Tabs -->
             <RowDefinition Height="Auto"/>
             <!-- Common options -->
             <RowDefinition Height="Auto"/>
@@ -22,73 +22,73 @@
 
         <!-- Tabs -->
         <Pivot Grid.Row="0" x:Name="MainPivot" Padding="0" Margin="-12,0,-12,0"
-				       SelectionChanged="OnPivotSelectionChanged">
-						<!-- File deletion tab -->
-            <PivotItem Header="Удаление файлов">
+              SelectionChanged="OnPivotSelectionChanged">
+            <!-- File deletion tab -->
+            <PivotItem x:Uid="FileDeletionTab">
                 <Grid RowSpacing="12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-										<Border Grid.Row="0"
-														Height="230"
-														BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-														BorderThickness="1"
-														CornerRadius="8"
-														Padding="12">
-												<Grid RowSpacing="8">
-														<Grid.RowDefinitions>
-																<RowDefinition Height="Auto"/>
-																<RowDefinition Height="*"/>
-																<RowDefinition Height="Auto"/>
-														</Grid.RowDefinitions>
+                    <Border Grid.Row="0"
+                            Height="230"
+                            BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12">
+                        <Grid RowSpacing="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-														<TextBlock Grid.Row="0" Text="Пути" FontWeight="SemiBold"/>
+                            <TextBlock Grid.Row="0" x:Uid="PathsHeader" FontWeight="SemiBold"/>
 
-														<ScrollViewer Grid.Row="1"
-																					VerticalScrollBarVisibility="Auto"
-																					HorizontalScrollBarVisibility="Disabled">
-																<StackPanel x:Name="PathsPanel" Spacing="8">
-																		<TextBlock x:Name="EmptyPathsHint"
-																							Text="Пути не добавлены"
-																							Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-																</StackPanel>
-														</ScrollViewer>
+                            <ScrollViewer Grid.Row="1"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel x:Name="PathsPanel" Spacing="8">
+                                    <TextBlock x:Name="EmptyPathsHint"
+                                              x:Uid="EmptyPathsHint"
+                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                </StackPanel>
+                            </ScrollViewer>
 
-														<Button Grid.Row="2"
-																		x:Name="AddPathButton"
-																		Content="Добавить путь"
-																		HorizontalAlignment="Left">
-																<Button.Flyout>
-																		<MenuFlyout>
-																				<MenuFlyoutItem Text="Файл(ы)" Click="AddFiles_Click"/>
-																				<MenuFlyoutItem Text="Папка" Click="AddFolder_Click"/>
-																		</MenuFlyout>
-																</Button.Flyout>
-														</Button>
-												</Grid>
-										</Border>
+                            <Button Grid.Row="2"
+                                    x:Name="AddPathButton"
+                                    x:Uid="AddPathButton"
+                                    HorizontalAlignment="Left">
+                                <Button.Flyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem x:Uid="AddFilesMenuItem" Click="AddFiles_Click"/>
+                                        <MenuFlyoutItem x:Uid="AddFolderMenuItem" Click="AddFolder_Click"/>
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                            </Button>
+                        </Grid>
+                    </Border>
 
                     <!-- File deletion flags -->
-										<Border Grid.Row="1"
-														Height="64"
-														BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-														BorderThickness="1"
-														CornerRadius="8"
-														Padding="12">
-											<StackPanel Orientation="Horizontal" Spacing="24" VerticalAlignment="Center">
-													<CheckBox x:Name="RecurseCheckBox" Content="Рекурсивно"
-																		Checked="OnOptionChanged" Unchecked="OnOptionChanged"/> <!-- -s -->
-													<CheckBox x:Name="RemoveReadOnlyCheckBox" Content="Снимать атрибут «только для чтения»"
-																		Checked="OnOptionChanged" Unchecked="OnOptionChanged"/> <!-- -r -->
-											</StackPanel>
-										</Border>
+                    <Border Grid.Row="1"
+                            Height="64"
+                            BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12">
+                      <StackPanel Orientation="Horizontal" Spacing="24" VerticalAlignment="Center">
+                          <CheckBox x:Name="RecurseCheckBox" x:Uid="RecurseCheckBox"
+                                    Checked="OnOptionChanged" Unchecked="OnOptionChanged"/> <!-- -s -->
+                          <CheckBox x:Name="RemoveReadOnlyCheckBox" x:Uid="RemoveReadOnlyCheckBox"
+                                    Checked="OnOptionChanged" Unchecked="OnOptionChanged"/> <!-- -r -->
+                      </StackPanel>
+                    </Border>
                 </Grid>
             </PivotItem>
 
-						<!-- Clean free space tab -->
-            <PivotItem Header="Очистка свободного места">
+            <!-- Clean free space tab -->
+            <PivotItem x:Uid="CleanFreeSpaceTab">
                 <Grid RowSpacing="12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -112,155 +112,155 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Диски и устройства" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="0" Grid.Column="0" x:Uid="DrivesHeader" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <Button Grid.Row="0" Grid.Column="1"
                                     x:Name="RefreshDrivesButton"
-                                    Content="Обновить"
+                                    x:Uid="RefreshDrivesButton"
                                     Click="RefreshDrivesButton_Click"/>
 
-														<GridView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-																			x:Name="DrivesGridView"
-																			SelectionMode="Multiple"
-																			IsItemClickEnabled="False"
-																			SelectionChanged="OnDrivesSelectionChanged"
-																			ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-																			ScrollViewer.VerticalScrollBarVisibility="Auto">
-																<GridView.ItemsPanel>
-																		<ItemsPanelTemplate>
-																				<ItemsWrapGrid Orientation="Horizontal" ItemWidth="118" ItemHeight="96"/>
-																		</ItemsPanelTemplate>
-																</GridView.ItemsPanel>
-																<GridView.ItemTemplate>
-																		<DataTemplate>
-																				<Grid Width="102" Height="82" Padding="8">
-																						<Grid.RowDefinitions>
-																								<RowDefinition Height="Auto"/>
-																								<RowDefinition Height="Auto"/>
-																								<RowDefinition Height="Auto"/>
-																								<RowDefinition Height="Auto"/>
-																						</Grid.RowDefinitions>
+                            <GridView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                      x:Name="DrivesGridView"
+                                      SelectionMode="Multiple"
+                                      IsItemClickEnabled="False"
+                                      SelectionChanged="OnDrivesSelectionChanged"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <GridView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <ItemsWrapGrid Orientation="Horizontal" ItemWidth="118" ItemHeight="96"/>
+                                    </ItemsPanelTemplate>
+                                </GridView.ItemsPanel>
+                                <GridView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Width="102" Height="82" Padding="8">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-																						<!-- Буква диска — левый верхний угол -->
-																						<TextBlock Text="{Binding DriveLetter}"
-																											FontSize="11"
-																											FontWeight="SemiBold"
-																											HorizontalAlignment="Left"
-																											VerticalAlignment="Top"
-																											Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                            <!-- Буква диска — левый верхний угол -->
+                                            <TextBlock Text="{Binding DriveLetter}"
+                                                      FontSize="11"
+                                                      FontWeight="SemiBold"
+                                                      HorizontalAlignment="Left"
+                                                      VerticalAlignment="Top"
+                                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
 
-																						<FontIcon Grid.Row="0"
-																											Glyph="{Binding Glyph}"
-																											FontSize="26"
-																											HorizontalAlignment="Center"
-																											Margin="0,4,0,0"/>
+                                            <FontIcon Grid.Row="0"
+                                                      Glyph="{Binding Glyph}"
+                                                      FontSize="26"
+                                                      HorizontalAlignment="Center"
+                                                      Margin="0,4,0,0"/>
 
-																						<TextBlock Grid.Row="1"
-																											Text="{Binding DisplayName}"
-																											TextAlignment="Center"
-																											TextWrapping="NoWrap"
-																											FontSize="12"
-																											Margin="0,4,0,0"/>
+                                            <TextBlock Grid.Row="1"
+                                                      Text="{Binding DisplayName}"
+                                                      TextAlignment="Center"
+                                                      TextWrapping="NoWrap"
+                                                      FontSize="12"
+                                                      Margin="0,4,0,0"/>
 
-																						<TextBlock Grid.Row="2"
-																											Text="{Binding CapacityText}"
-																											TextAlignment="Center"
-																											FontSize="10"
-																											Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                            <TextBlock Grid.Row="2"
+                                                      Text="{Binding CapacityText}"
+                                                      TextAlignment="Center"
+                                                      FontSize="10"
+                                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
 
-																						<ProgressBar Grid.Row="3"
-																												Value="{Binding UsedPercent}"
-																												Minimum="0"
-																												Maximum="100"
-																												Height="4"
-																												Margin="0,4,0,0"/>
-																				</Grid>
-																		</DataTemplate>
-																</GridView.ItemTemplate>
-														</GridView>
+                                            <ProgressBar Grid.Row="3"
+                                                        Value="{Binding UsedPercent}"
+                                                        Minimum="0"
+                                                        Maximum="100"
+                                                        Height="4"
+                                                        Margin="0,4,0,0"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridView.ItemTemplate>
+                            </GridView>
                         </Grid>
                     </Border>
 
                     <!-- Clean mode flags -->
-										<Border Grid.Row="1"
-														Height="64"
-														BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-														BorderThickness="1"
-														CornerRadius="8"
-														Padding="12">
-											<StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-													<TextBlock Text="Режим очистки:" VerticalAlignment="Center"/>
-													<RadioButton x:Name="ZeroFillRadio" GroupName="CleanMode" Content="Заполнить нулями" Checked="OnOptionChanged" Unchecked="OnOptionChanged"/> <!-- -z -->
-													<RadioButton x:Name="CleanFreeRadio" GroupName="CleanMode" Content="Очистить" IsChecked="True" Checked="OnOptionChanged" Unchecked="OnOptionChanged"/> <!-- -c -->
-											</StackPanel>
-										</Border>
+                    <Border Grid.Row="1"
+                            Height="64"
+                            BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12">
+                      <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                          <TextBlock x:Uid="CleanModeLabel" VerticalAlignment="Center"/>
+                          <RadioButton x:Name="ZeroFillRadio" x:Uid="ZeroFillRadio" GroupName="CleanMode" Checked="OnOptionChanged" Unchecked="OnOptionChanged"/> <!-- -z -->
+                          <RadioButton x:Name="CleanFreeRadio" x:Uid="CleanFreeRadio" GroupName="CleanMode" IsChecked="True" Checked="OnOptionChanged" Unchecked="OnOptionChanged"/> <!-- -c -->
+                      </StackPanel>
+                    </Border>
                 </Grid>
             </PivotItem>
         </Pivot>
 
-				<!-- Common options -->
-				<Border Grid.Row="1"
-								BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-								BorderThickness="1"
-								CornerRadius="8"
-								Padding="12">
-						<ContentControl x:Name="CommonOptionsPanel"
-														HorizontalContentAlignment="Stretch"
-														VerticalContentAlignment="Stretch"
-														IsTabStop="False">
-								<StackPanel Spacing="12">
+        <!-- Common options -->
+        <Border Grid.Row="1"
+                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12">
+            <ContentControl x:Name="CommonOptionsPanel"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch"
+                            IsTabStop="False">
+                <StackPanel Spacing="12">
 
-										<Grid ColumnSpacing="12">
-												<Grid.ColumnDefinitions>
-														<ColumnDefinition Width="Auto"/>
-														<ColumnDefinition Width="*"/>
-												</Grid.ColumnDefinitions>
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-												<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-														<TextBlock Text="Исполняемый файл:" VerticalAlignment="Center"/>
-														<RadioButton x:Name="Sdelete32Radio" GroupName="Executable" Content="sdelete" IsChecked="True"
-																				Checked="OnOptionChanged"/>
-														<RadioButton x:Name="Sdelete64Radio" GroupName="Executable" Content="sdelete64"
-																				Checked="OnOptionChanged"/>
-												</StackPanel>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock x:Uid="ExecutableLabel" VerticalAlignment="Center"/>
+                            <RadioButton x:Name="Sdelete32Radio" x:Uid="Sdelete32Radio" GroupName="Executable" IsChecked="True"
+                                        Checked="OnOptionChanged"/>
+                            <RadioButton x:Name="Sdelete64Radio" x:Uid="Sdelete64Radio" GroupName="Executable"
+                                        Checked="OnOptionChanged"/>
+                        </StackPanel>
 
-												<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"
-																		HorizontalAlignment="Right">
-														<TextBlock Text="Проходов:" VerticalAlignment="Center"/>
-														<NumberBox x:Name="PassesNumberBox"
-																			Value="3"
-																			Minimum="1"
-																			SpinButtonPlacementMode="Inline"
-																			Width="110"
-																			ValueChanged="OnPassesChanged"/>
-														<Border Width="8"/>
-												</StackPanel>
-										</Grid>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"
+                                    HorizontalAlignment="Right">
+                            <TextBlock x:Uid="PassesLabel" VerticalAlignment="Center"/>
+                            <NumberBox x:Name="PassesNumberBox"
+                                      Value="3"
+                                      Minimum="1"
+                                      SpinButtonPlacementMode="Inline"
+                                      Width="110"
+                                      ValueChanged="OnPassesChanged"/>
+                            <Border Width="8"/>
+                        </StackPanel>
+                    </Grid>
 
-										<Grid ColumnSpacing="8">
-												<Grid.ColumnDefinitions>
-														<ColumnDefinition Width="Auto"/>
-														<ColumnDefinition Width="*"/>
-														<ColumnDefinition Width="Auto"/>
-												</Grid.ColumnDefinitions>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-												<TextBlock Grid.Column="0" Text="Папка с sdelete:" VerticalAlignment="Center"/>
-												<TextBox Grid.Column="1"
-																x:Name="SdeleteFolderTextBox"
-																PlaceholderText="Оставьте пустым, если sdelete есть в PATH"
-																TextChanged="OnSdeleteFolderChanged"/>
-												<Button Grid.Column="2"
-																x:Name="BrowseSdeleteFolderButton"
-																Content="Обзор..."
-																Click="BrowseSdeleteFolderButton_Click"/>
-										</Grid>
-								</StackPanel>
-						</ContentControl>
-				</Border>
+                        <TextBlock Grid.Column="0" x:Uid="SdeleteFolderLabel" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1"
+                                x:Name="SdeleteFolderTextBox"
+                                x:Uid="SdeleteFolderTextBox"
+                                TextChanged="OnSdeleteFolderChanged"/>
+                        <Button Grid.Column="2"
+                                x:Name="BrowseSdeleteFolderButton"
+                                x:Uid="BrowseSdeleteFolderButton"
+                                Click="BrowseSdeleteFolderButton_Click"/>
+                    </Grid>
+                </StackPanel>
+            </ContentControl>
+        </Border>
 
-      	<!-- Run button -->
+        <!-- Run button -->
         <Button Grid.Row="2"
                 x:Name="RunButton"
-                Content="Запустить"
+                x:Uid="RunButton"
                 Click="RunButton_Click"
                 HorizontalAlignment="Stretch"
                 Style="{StaticResource AccentButtonStyle}"/>
@@ -273,24 +273,22 @@
                 CornerRadius="8"
                 Padding="8">
             <TextBox x:Name="OutputTextBox"
-                     IsReadOnly="True"
-                     AcceptsReturn="True"
-                     TextWrapping="Wrap"
-                     BorderThickness="0"
-                     Background="White"
-                     Foreground="Black"
-                     FontFamily="Consolas"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    IsReadOnly="True"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    BorderThickness="0"
+                    Background="White"
+                    Foreground="Black"
+                    FontFamily="Consolas"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"/>
         </Border>
 
-				<ContentDialog x:Name="ConfirmDialog"
-											Title="Подтверждение"
-											PrimaryButtonText="Да"
-											CloseButtonText="Нет"
-											DefaultButton="Close"
-											IsPrimaryButtonEnabled="False">
-						<TextBlock x:Name="ConfirmDialogText" TextWrapping="Wrap"/>
-				</ContentDialog>
+        <ContentDialog x:Name="ConfirmDialog"
+                      x:Uid="ConfirmDialog"
+                      DefaultButton="Close"
+                      IsPrimaryButtonEnabled="False">
+            <TextBlock x:Name="ConfirmDialogText" TextWrapping="Wrap"/>
+        </ContentDialog>
 
     </Grid>
 </Page>

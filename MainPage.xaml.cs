@@ -453,8 +453,6 @@ public sealed partial class MainPage : Page
 
 		OutputTextBox.Text = _outputBuffer.ToString();
 
-		// Ключевой момент: возвращаем каретку в конец, чтобы TextBox
-		// сам прокрутился вниз, а не сбросился в начало.
 		OutputTextBox.SelectionStart = OutputTextBox.Text.Length;
 		OutputTextBox.SelectionLength = 0;
 	}

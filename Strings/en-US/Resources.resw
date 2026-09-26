@@ -1,5 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
@@ -13,13 +59,87 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
+  <data name="AppWindowTitle" xml:space="preserve">
+    <value>Secure Delete Interface</value>
+  </data>
+  <data name="FileDeletionTab.Header" xml:space="preserve">
+    <value>File deletion</value>
+  </data>
+  <data name="CleanFreeSpaceTab.Header" xml:space="preserve">
+    <value>Clean free space</value>
+  </data>
+
+  <data name="PathsHeader.Text" xml:space="preserve">
+    <value>Paths</value>
+  </data>
+  <data name="EmptyPathsHint.Text" xml:space="preserve">
+    <value>No paths added</value>
+  </data>
   <data name="AddPathButton.Content" xml:space="preserve">
     <value>Add path</value>
   </data>
-  <data name="AddPathButton.AddFiles.Text" xml:space="preserve">
+  <data name="AddFilesMenuItem.Text" xml:space="preserve">
     <value>File(s)</value>
   </data>
-  <data name="AddPathButton.AddFolder.Text" xml:space="preserve">
+  <data name="AddFolderMenuItem.Text" xml:space="preserve">
     <value>Folder</value>
+  </data>
+  <data name="RecurseCheckBox.Content" xml:space="preserve">
+    <value>Recursive</value>
+  </data>
+  <data name="RemoveReadOnlyCheckBox.Content" xml:space="preserve">
+    <value>Clear read-only attribute</value>
+  </data>
+
+  <data name="DrivesHeader.Text" xml:space="preserve">
+    <value>Drives and devices</value>
+  </data>
+  <data name="RefreshDrivesButton.Content" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="CleanModeLabel.Text" xml:space="preserve">
+    <value>Clean mode:</value>
+  </data>
+  <data name="ZeroFillRadio.Content" xml:space="preserve">
+    <value>Zero fill</value>
+  </data>
+  <data name="CleanFreeRadio.Content" xml:space="preserve">
+    <value>Clean</value>
+  </data>
+
+  <data name="ExecutableLabel.Text" xml:space="preserve">
+    <value>Executable:</value>
+  </data>
+  <data name="Sdelete32Radio.Content" xml:space="preserve">
+    <value>sdelete</value>
+  </data>
+  <data name="Sdelete64Radio.Content" xml:space="preserve">
+    <value>sdelete64</value>
+  </data>
+  <data name="PassesLabel.Text" xml:space="preserve">
+    <value>Passes:</value>
+  </data>
+  <data name="SdeleteFolderLabel.Text" xml:space="preserve">
+    <value>sdelete folder:</value>
+  </data>
+  <data name="SdeleteFolderTextBox.PlaceholderText" xml:space="preserve">
+    <value>Leave empty if sdelete is in PATH</value>
+  </data>
+  <data name="BrowseSdeleteFolderButton.Content" xml:space="preserve">
+    <value>Browse...</value>
+  </data>
+
+  <data name="RunButton.Content" xml:space="preserve">
+    <value>Run</value>
+  </data>
+
+  <data name="ConfirmDialog.Title" xml:space="preserve">
+    <value>Confirmation</value>
+  </data>
+  <data name="ConfirmDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="ConfirmDialog.CloseButtonText" xml:space="preserve">
+    <value>No</value>
   </data>
 </root>
