@@ -1,3 +1,5 @@
+<img src="Assets/AppIcon.svg" width="96" align="right">
+
 # Secure Delete Interface
 
 A WinUI 3 wrapper around Sysinternals SDelete. It provides a graphical

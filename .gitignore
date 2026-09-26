@@ -53,6 +53,6 @@ _ReSharper*/
 Generated\ Files/
 *_wpftmp.csproj
 
-*~lock
+*~lock~
 
 installer/Output
