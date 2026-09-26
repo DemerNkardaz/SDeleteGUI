@@ -25,7 +25,6 @@ public sealed partial class MainPage : Page
 
 	private bool _isRunning;
 
-	private Brush? _originalButtonBackground;
 	private Brush? _originalButtonPointerOverBackground;
 	private Brush? _originalButtonPressedBackground;
 
@@ -44,9 +43,46 @@ public sealed partial class MainPage : Page
 		var settings = SettingsService.Load();
 		ApplySettingsToUI(settings);
 
+		ApplyStartupArguments(App.StartupArguments);
+
 		_isReady = true;
 
 		RefreshCommandPreview();
+	}
+
+	private static readonly System.Text.RegularExpressions.Regex DriveRootRegex =
+		new(@"^[A-Za-z]:\\?$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+	private void ApplyStartupArguments(string[] args)
+	{
+		if (args.Length == 0) return;
+
+		var driveArgs = new List<string>();
+		var pathArgs = new List<string>();
+
+		foreach (var arg in args)
+		{
+			var trimmed = arg.Trim();
+			if (trimmed.Length == 0) continue;
+
+			if (DriveRootRegex.IsMatch(trimmed))
+				driveArgs.Add(trimmed.TrimEnd('\\').ToUpperInvariant() + "\\");
+			else if (Directory.Exists(trimmed) || File.Exists(trimmed))
+				pathArgs.Add(trimmed);
+		}
+
+		if (pathArgs.Count > 0)
+		{
+			MainPivot.SelectedIndex = 0;
+			foreach (var path in pathArgs)
+				AddPathRow(path, isDirectory: Directory.Exists(path));
+		}
+		else if (driveArgs.Count > 0)
+		{
+			MainPivot.SelectedIndex = 1;
+			foreach (var item in _drives.Where(d => driveArgs.Contains(d.Name, StringComparer.OrdinalIgnoreCase)))
+				DrivesGridView.SelectedItems.Add(item);
+		}
 	}
 
 	// Drives management

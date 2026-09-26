@@ -29,12 +29,16 @@ public partial class App : Application
     /// </summary>
     public static Window? MainWindow { get; private set; }
 
+	public static string[] StartupArguments { get; private set; } = Array.Empty<string>();
+
     /// <summary>
     /// Initializes the singleton application object.  This is the first line of authored code
     /// executed, and as such is the logical equivalent of main() or WinMain().
     /// </summary>
     public App()
     {
+		StartupArguments = Environment.GetCommandLineArgs().Skip(1).ToArray();
+
 		// ApplicationLanguages.PrimaryLanguageOverride = "en-US";
         InitializeComponent();
 
