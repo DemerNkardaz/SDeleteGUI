@@ -49,6 +49,7 @@ public sealed partial class MainPage : Page
 
 		var settings = SettingsService.Load();
 		ApplySettingsToUI(settings);
+		UpdateSdeletePresenceWarning();
 
 		ApplyStartupArguments(App.StartupArguments);
 
@@ -358,6 +359,7 @@ public sealed partial class MainPage : Page
 	{
 		if (!_isReady) return;
 		RefreshCommandPreview();
+		UpdateSdeletePresenceWarning();
 	}
 
 	private void OnPassesChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
@@ -370,6 +372,7 @@ public sealed partial class MainPage : Page
 	{
 		if (!_isReady) return;
 		RefreshCommandPreview();
+		UpdateSdeletePresenceWarning();
 	}
 
 	private void OnPivotSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -655,6 +658,60 @@ public sealed partial class MainPage : Page
 
 		_outputScrollViewer ??= FindDescendant<ScrollViewer>(OutputTextBox);
     	_outputScrollViewer?.ChangeView(null, _outputScrollViewer.ScrollableHeight, null, disableAnimation: true);
+	}
+
+	private void UpdateSdeletePresenceWarning()
+	{
+		SyncOptionsFromUI();
+
+		var exePath = _options.ResolveExecutablePath() + ".exe";
+		bool found;
+
+		if (Path.IsPathRooted(exePath))
+		{
+			// Полный путь — проверяем напрямую.
+			found = File.Exists(exePath);
+		}
+		else
+		{
+			// Относительное имя — ищем в PATH.
+			found = IsExecutableInPath(exePath);
+		}
+
+		if (found)
+		{
+			SdeleteNotFoundInfoBar.IsOpen = false;
+		}
+		else
+		{
+			SdeleteNotFoundInfoBar.Message = Loc.Get("SdeleteNotFound");
+			SdeleteNotFoundInfoBar.IsOpen = true;
+		}
+	}
+
+	private static bool IsExecutableInPath(string fileName)
+	{
+		var path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
+		if (string.IsNullOrWhiteSpace(path))
+			return false;
+
+		foreach (var dir in path.Split(Path.PathSeparator))
+		{
+			if (string.IsNullOrWhiteSpace(dir))
+				continue;
+
+			try
+			{
+				var fullPath = Path.Combine(dir.Trim('"'), fileName);
+				if (File.Exists(fullPath))
+					return true;
+			}
+			catch
+			{
+			}
+		}
+
+		return false;
 	}
 
 	// Settings

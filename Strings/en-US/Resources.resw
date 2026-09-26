@@ -193,6 +193,10 @@ Do you want to continue?</value>
     <value>Yes</value>
   </data>
 
+  <data name="SdeleteNotFound" xml:space="preserve">
+    <value>SDelete not found</value>
+  </data>
+
   <data name="RunCommandStarted" xml:space="preserve">
     <value>~ Command started</value>
   </data>

@@ -326,6 +326,15 @@
                            FontSize="12"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
 
+                <InfoBar x:Name="SdeleteNotFoundInfoBar"
+                         Grid.Column="2"
+                         Severity="Error"
+                         IsOpen="False"
+                         IsClosable="False"
+                         IsIconVisible="True"
+                         Margin="16,0"
+                         VerticalAlignment="Center"/>
+
                 <TextBlock x:Name="StatusVersionText"
                            Grid.Column="3"
                            Margin="0,0,12,0"
