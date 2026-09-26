@@ -11,6 +11,7 @@ using WinRT.Interop;
 
 using SDeleteGUI.Models;
 using SDeleteGUI.Services;
+
 namespace SDeleteGUI;
 
 public sealed partial class MainPage : Page
@@ -27,11 +28,15 @@ public sealed partial class MainPage : Page
 	{
 		InitializeComponent();
 
-		_isReady = true;
-
 		DrivesGridView.ItemsSource = _drives;
 
 		LoadDrives();
+
+		var settings = SettingsService.Load();
+		ApplySettingsToUI(settings);
+
+		_isReady = true;
+
 		RefreshCommandPreview();
 	}
 
@@ -222,7 +227,6 @@ public sealed partial class MainPage : Page
 		RefreshCommandPreview();
 	}
 
-
 	private void OnPassesChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
 	{
 		if (!_isReady) return;
@@ -240,7 +244,6 @@ public sealed partial class MainPage : Page
 		if (!_isReady) return;
 		RefreshCommandPreview();
 	}
-
 
 	// Synchronization and command preview
 
@@ -388,7 +391,6 @@ public sealed partial class MainPage : Page
 
 		var pending = new StringBuilder();
 
-
 		void OnOutput(string chunk)
 		{
 			var cleaned = AnsiEscapeRegex.Replace(chunk, string.Empty);
@@ -455,5 +457,66 @@ public sealed partial class MainPage : Page
 
 		OutputTextBox.SelectionStart = OutputTextBox.Text.Length;
 		OutputTextBox.SelectionLength = 0;
+	}
+
+	// Settings
+	private void ApplySettingsToUI(AppSettings settings)
+	{
+		// Executable
+		if (string.Equals(settings.Executable, "Sdelete64", StringComparison.OrdinalIgnoreCase))
+			Sdelete64Radio.IsChecked = true;
+		else
+			Sdelete32Radio.IsChecked = true;
+
+		// Passes
+		PassesNumberBox.Value = settings.Passes < 1 ? 1 : settings.Passes;
+
+		// sdelete folder
+		SdeleteFolderTextBox.Text = settings.SdeleteFolderPath ?? string.Empty;
+
+		// File deletion options
+		RecurseCheckBox.IsChecked = settings.Recursive;
+		RemoveReadOnlyCheckBox.IsChecked = settings.RemoveReadOnlyAttribute;
+
+		// Clean mode
+		if (string.Equals(settings.CleanMode, "ZeroFill", StringComparison.OrdinalIgnoreCase))
+			ZeroFillRadio.IsChecked = true;
+		else
+			CleanFreeRadio.IsChecked = true;
+
+		// Active tab
+		MainPivot.SelectedIndex = string.Equals(settings.Mode, "CleanFreeSpace", StringComparison.OrdinalIgnoreCase)
+			? 1
+			: 0;
+	}
+
+	private AppSettings CollectSettingsFromUI()
+	{
+		return new AppSettings
+		{
+			Version = 1,
+			Executable = Sdelete64Radio.IsChecked == true ? "Sdelete64" : "Sdelete",
+			SdeleteFolderPath = string.IsNullOrWhiteSpace(SdeleteFolderTextBox.Text)
+				? null
+				: SdeleteFolderTextBox.Text,
+			Passes = double.IsNaN(PassesNumberBox.Value) ? 3 : (int)PassesNumberBox.Value,
+			Mode = MainPivot.SelectedIndex == 0 ? "DeleteFiles" : "CleanFreeSpace",
+			Recursive = RecurseCheckBox.IsChecked == true,
+			RemoveReadOnlyAttribute = RemoveReadOnlyCheckBox.IsChecked == true,
+			CleanMode = ZeroFillRadio.IsChecked == true ? "ZeroFill" : "CleanFree"
+		};
+	}
+
+	public void SaveSettingsOnClose()
+	{
+		try
+		{
+			var settings = CollectSettingsFromUI();
+			SettingsService.Save(settings);
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Debug.WriteLine($"SaveSettingsOnClose failed: {ex}");
+		}
 	}
 }
