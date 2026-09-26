@@ -193,6 +193,21 @@
     <value>Да</value>
   </data>
 
+  <data name="CloseWhileRunningTitle" xml:space="preserve">
+    <value>Процесс выполняется</value>
+  </data>
+  <data name="CloseWhileRunningText" xml:space="preserve">
+    <value>SDelete ещё работает. Если вы закроете окно, процесс будет прерван. Это может оставить временные файлы на диске.
+
+Хотите прервать и выйти?</value>
+  </data>
+  <data name="CloseWhileRunningYes" xml:space="preserve">
+    <value>Прервать и выйти</value>
+  </data>
+  <data name="CloseWhileRunningNo" xml:space="preserve">
+    <value>Остаться</value>
+  </data>
+
   <data name="SdeleteNotFound" xml:space="preserve">
     <value>Не удалось найти исполняемый файл SDelete</value>
   </data>

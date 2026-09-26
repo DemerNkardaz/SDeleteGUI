@@ -193,6 +193,21 @@ Do you want to continue?</value>
     <value>Yes</value>
   </data>
 
+  <data name="CloseWhileRunningTitle" xml:space="preserve">
+    <value>Process is running</value>
+  </data>
+  <data name="CloseWhileRunningText" xml:space="preserve">
+    <value>SDelete is still running. If you close the window, the process will be interrupted. This may leave temporary files on the disk.
+
+Do you want to stop and exit?</value>
+  </data>
+  <data name="CloseWhileRunningYes" xml:space="preserve">
+    <value>Stop and exit</value>
+  </data>
+  <data name="CloseWhileRunningNo" xml:space="preserve">
+    <value>Stay</value>
+  </data>
+
   <data name="SdeleteNotFound" xml:space="preserve">
     <value>SDelete not found</value>
   </data>

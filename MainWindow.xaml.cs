@@ -1,3 +1,4 @@
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -14,6 +15,8 @@ namespace SDeleteGUI;
 /// </summary>
 public sealed partial class MainWindow : Window
 {
+	private bool _closeConfirmed;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -42,7 +45,30 @@ public sealed partial class MainWindow : Window
         // Navigate the root frame to the main page on startup.
         RootFrame.Navigate(typeof(MainPage));
 
+		AppWindow.Closing += AppWindow_Closing;
         Closed += MainWindow_Closed;
+    }
+
+    private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (_closeConfirmed)
+            return;
+
+        if (RootFrame.Content is not MainPage page)
+            return;
+
+        if (!page.IsRunning)
+            return;
+
+        args.Cancel = true;
+
+        var confirmed = await page.ConfirmCloseWhileRunningAsync();
+        if (!confirmed)
+            return;
+
+        _closeConfirmed = true;
+        page.RequestStopForClose();
+        Close();
     }
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)

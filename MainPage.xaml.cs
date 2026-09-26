@@ -36,6 +36,8 @@ public sealed partial class MainPage : Page
 
 	private ScrollViewer? _outputScrollViewer;
 
+	public bool IsRunning => _isRunning;
+
 	public MainPage()
 	{
 		InitializeComponent();
@@ -56,6 +58,27 @@ public sealed partial class MainPage : Page
 		_isReady = true;
 
 		RefreshCommandPreview();
+	}
+
+	public async Task<bool> ConfirmCloseWhileRunningAsync()
+	{
+		var dialog = new ContentDialog
+		{
+			XamlRoot = this.XamlRoot,
+			Title = Loc.Get("CloseWhileRunningTitle"),
+			Content = Loc.Get("CloseWhileRunningText"),
+			PrimaryButtonText = Loc.Get("CloseWhileRunningYes"),
+			CloseButtonText = Loc.Get("CloseWhileRunningNo"),
+			DefaultButton = ContentDialogButton.Close
+		};
+
+		var result = await dialog.ShowAsync();
+		return result == ContentDialogResult.Primary;
+	}
+
+	public void RequestStopForClose()
+	{
+		PseudoConsoleProcessRunner.RequestStop();
 	}
 
 	private void InitializeStatusBar()
