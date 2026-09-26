@@ -107,26 +107,20 @@
     <value>Очистить</value>
   </data>
 
-  <data name="ExecutableLabel.Text" xml:space="preserve">
-    <value>Исполняемый файл:</value>
-  </data>
-  <data name="Sdelete32Radio.Content" xml:space="preserve">
-    <value>sdelete</value>
-  </data>
-  <data name="Sdelete64Radio.Content" xml:space="preserve">
-    <value>sdelete64</value>
+  <data name="Use64BitCheckBox.Content" xml:space="preserve">
+    <value>64-битная версия</value>
   </data>
   <data name="PassesLabel.Text" xml:space="preserve">
     <value>Проходов:</value>
   </data>
   <data name="SdeleteFolderLabel.Text" xml:space="preserve">
-    <value>Папка с sdelete:</value>
+    <value>Директория с SDelete:</value>
   </data>
   <data name="SdeleteFolderTextBox.PlaceholderText" xml:space="preserve">
-    <value>Оставьте пустым, если sdelete есть в PATH</value>
+    <value>Оставьте пустым, если SDelete есть в PATH</value>
   </data>
   <data name="BrowseSdeleteFolderButton.Content" xml:space="preserve">
-    <value>Обзор...</value>
+    <value>Обзор…</value>
   </data>
 
   <data name="ConfirmDialog.Title" xml:space="preserve">
@@ -209,10 +203,17 @@
     <value>~ Ошибка запуска: {0}</value>
   </data>
 
+  <data name="UnitTB" xml:space="preserve">
+   <value>ТБ</value>
+  </data>
   <data name="UnitGB" xml:space="preserve">
     <value>ГБ</value>
   </data>
   <data name="UnitMB" xml:space="preserve">
     <value>МБ</value>
+  </data>
+
+  <data name="AuthorName" xml:space="preserve">
+    <value>Ялла Нкардаз</value>
   </data>
 </root>

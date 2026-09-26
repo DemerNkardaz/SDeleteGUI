@@ -31,7 +31,7 @@ public sealed partial class MainWindow : Window
 
         if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
         {
-            AppWindow.Resize(new Windows.Graphics.SizeInt32(800, 800));
+            AppWindow.Resize(new Windows.Graphics.SizeInt32(800, 900));
 
             presenter.IsResizable = false;
 

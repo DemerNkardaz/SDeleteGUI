@@ -3,6 +3,7 @@ using Microsoft.UI.Dispatching;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
+using System.Reflection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -25,14 +26,20 @@ public sealed partial class MainPage : Page
 
 	private bool _isRunning;
 
+	private DispatcherTimer? _statusTimer;
+	private DateTime _processStartTime;
+
 	private Brush? _originalButtonPointerOverBackground;
 	private Brush? _originalButtonPressedBackground;
 
 	private readonly StringBuilder _outputBuffer = new();
 
+	private ScrollViewer? _outputScrollViewer;
+
 	public MainPage()
 	{
 		InitializeComponent();
+		InitializeStatusBar();
 
 		RunButton.Content = Loc.Get("RunButton");
 
@@ -48,6 +55,87 @@ public sealed partial class MainPage : Page
 		_isReady = true;
 
 		RefreshCommandPreview();
+	}
+
+	private void InitializeStatusBar()
+	{
+		var informationalVersion = Assembly.GetExecutingAssembly()
+			.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+			.InformationalVersion;
+
+		var version = informationalVersion?.Split('+')[0] ?? "1.0.0";
+
+		StatusVersionText.Text = version;
+		StatusAuthorLink.Content = Loc.Get("AuthorName");
+
+		SetStatusIdle();
+	}
+
+	private void SetStatusIdle()
+	{
+		StatusIcon.Glyph = "\uE945"; // нейтральная точка
+		StatusIcon.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+		StatusIcon.Visibility = Visibility.Visible;
+		StatusProgressRing.IsActive = false;
+		StatusProgressRing.Visibility = Visibility.Collapsed;
+	}
+
+	private void SetStatusRunning()
+	{
+		StatusIcon.Visibility = Visibility.Collapsed;
+		StatusProgressRing.IsActive = true;
+		StatusProgressRing.Visibility = Visibility.Visible;
+		_processStartTime = DateTime.Now;
+		StatusTimerText.Text = "00:00:00";
+		StartStatusTimer();
+	}
+
+	private void SetStatusCompleted(int exitCode)
+	{
+		StopStatusTimer();
+		StatusProgressRing.IsActive = false;
+		StatusProgressRing.Visibility = Visibility.Collapsed;
+		StatusIcon.Visibility = Visibility.Visible;
+
+		if (exitCode == 0)
+		{
+			StatusIcon.Glyph = "\uE73E"; // галочка
+			StatusIcon.Foreground = (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+		}
+		else
+		{
+			StatusIcon.Glyph = "\uEA39"; // ошибка
+			StatusIcon.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
+		}
+	}
+
+	private void SetStatusStopped()
+	{
+		StopStatusTimer();
+		StatusProgressRing.IsActive = false;
+		StatusProgressRing.Visibility = Visibility.Collapsed;
+		StatusIcon.Visibility = Visibility.Visible;
+		StatusIcon.Glyph = "\uE711"; // отмена
+		StatusIcon.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+	}
+
+	private void StartStatusTimer()
+	{
+		_statusTimer ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+		_statusTimer.Tick -= OnStatusTimerTick;
+		_statusTimer.Tick += OnStatusTimerTick;
+		_statusTimer.Start();
+	}
+
+	private void StopStatusTimer()
+	{
+		_statusTimer?.Stop();
+	}
+
+	private void OnStatusTimerTick(object? sender, object e)
+	{
+		var elapsed = DateTime.Now - _processStartTime;
+		StatusTimerText.Text = elapsed.ToString(@"hh\:mm\:ss");
 	}
 
 	private static readonly System.Text.RegularExpressions.Regex DriveRootRegex =
@@ -296,7 +384,7 @@ public sealed partial class MainPage : Page
 	{
 		_options.Mode = MainPivot.SelectedIndex == 0 ? SDeleteMode.DeleteFiles : SDeleteMode.CleanFreeSpace;
 
-		_options.Executable = Sdelete64Radio.IsChecked == true ? SDeleteExecutable.Sdelete64 : SDeleteExecutable.Sdelete;
+		_options.Executable = Use64BitCheckBox.IsChecked == true ? SDeleteExecutable.Sdelete64 : SDeleteExecutable.Sdelete;
 		_options.SdeleteFolderPath = string.IsNullOrWhiteSpace(SdeleteFolderTextBox.Text) ? null : SdeleteFolderTextBox.Text;
 		_options.Passes = double.IsNaN(PassesNumberBox.Value) ? 1 : (int)PassesNumberBox.Value;
 
@@ -365,6 +453,7 @@ public sealed partial class MainPage : Page
 
 		_isRunning = true;
 		UpdateRunButtonVisual();
+		SetStatusRunning();
 		SetUiEnabled(false);
 
 		try
@@ -472,6 +561,7 @@ public sealed partial class MainPage : Page
 	/// </summary>
 	private async Task RunSDeleteAsync()
 	{
+		SetStatusRunning();
 		var dispatcher = DispatcherQueue.GetForCurrentThread();
 		RefreshProcessPath();
 
@@ -513,10 +603,16 @@ public sealed partial class MainPage : Page
 				AppendOutputLine(pending.ToString());
 
 			AppendOutputLine(Loc.Format("RunCommandCompleted", exitCode));
+
+			if (exitCode == 0)
+				SetStatusCompleted(exitCode);
+			else
+				SetStatusStopped();
 		}
 		catch (Exception ex)
 		{
 			AppendOutputLine(Loc.Format("RunCommandError", ex.Message));
+			SetStatusStopped();
 		}
 	}
 
@@ -535,6 +631,19 @@ public sealed partial class MainPage : Page
 		Environment.SetEnvironmentVariable("PATH", combined, EnvironmentVariableTarget.Process);
 	}
 
+	private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
+	{
+		var count = VisualTreeHelper.GetChildrenCount(root);
+		for (int i = 0; i < count; i++)
+		{
+			var child = VisualTreeHelper.GetChild(root, i);
+			if (child is T typed) return typed;
+			var result = FindDescendant<T>(child);
+			if (result != null) return result;
+		}
+		return null;
+	}
+
 	private void AppendOutputLine(string line)
 	{
 		_outputBuffer.AppendLine(line);
@@ -543,16 +652,16 @@ public sealed partial class MainPage : Page
 
 		OutputTextBox.SelectionStart = OutputTextBox.Text.Length;
 		OutputTextBox.SelectionLength = 0;
+
+		_outputScrollViewer ??= FindDescendant<ScrollViewer>(OutputTextBox);
+    	_outputScrollViewer?.ChangeView(null, _outputScrollViewer.ScrollableHeight, null, disableAnimation: true);
 	}
 
 	// Settings
 
 	private void ApplySettingsToUI(AppSettings settings)
 	{
-		if (string.Equals(settings.Executable, "Sdelete64", StringComparison.OrdinalIgnoreCase))
-			Sdelete64Radio.IsChecked = true;
-		else
-			Sdelete32Radio.IsChecked = true;
+		Use64BitCheckBox.IsChecked = string.Equals(settings.Executable, "Sdelete64", StringComparison.OrdinalIgnoreCase);
 
 		PassesNumberBox.Value = settings.Passes < 1 ? 1 : settings.Passes;
 
@@ -576,7 +685,7 @@ public sealed partial class MainPage : Page
 		return new AppSettings
 		{
 			Version = 1,
-			Executable = Sdelete64Radio.IsChecked == true ? "Sdelete64" : "Sdelete",
+			Executable = Use64BitCheckBox.IsChecked == true ? "Sdelete64" : "Sdelete",
 			SdeleteFolderPath = string.IsNullOrWhiteSpace(SdeleteFolderTextBox.Text)
 				? null
 				: SdeleteFolderTextBox.Text,

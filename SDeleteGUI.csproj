@@ -20,6 +20,12 @@
 		<SelfContained>false</SelfContained>
     <EnableWinAppRunSupport>false</EnableWinAppRunSupport>
 		<ProjectPriFileName>resources.pri</ProjectPriFileName>
+
+		<Authors>Yalla Nkardaz</Authors>
+		<Copyright>© 2026 Yalla Nkardaz, MIT License</Copyright>
+		<Product>Secure Delete Interface</Product>
+		<Description></Description>
+		<Version>1.0.0-beta</Version>
   </PropertyGroup>
 
   <ItemGroup>

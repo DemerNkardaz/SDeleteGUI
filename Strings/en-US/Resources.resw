@@ -107,23 +107,17 @@
     <value>Clean</value>
   </data>
 
-  <data name="ExecutableLabel.Text" xml:space="preserve">
-    <value>Executable:</value>
-  </data>
-  <data name="Sdelete32Radio.Content" xml:space="preserve">
-    <value>sdelete</value>
-  </data>
-  <data name="Sdelete64Radio.Content" xml:space="preserve">
-    <value>sdelete64</value>
+  <data name="Use64BitCheckBox.Content" xml:space="preserve">
+    <value>64-bit version</value>
   </data>
   <data name="PassesLabel.Text" xml:space="preserve">
     <value>Passes:</value>
   </data>
   <data name="SdeleteFolderLabel.Text" xml:space="preserve">
-    <value>sdelete folder:</value>
+    <value>SDelete Directory:</value>
   </data>
   <data name="SdeleteFolderTextBox.PlaceholderText" xml:space="preserve">
-    <value>Leave empty if sdelete is in PATH</value>
+    <value>Leave empty if SDelete is in PATH</value>
   </data>
   <data name="BrowseSdeleteFolderButton.Content" xml:space="preserve">
     <value>Browse...</value>
@@ -209,10 +203,17 @@ Do you want to continue?</value>
     <value>~ Launch error: {0}</value>
   </data>
 
+  <data name="UnitTB" xml:space="preserve">
+    <value>TB</value>
+  </data>
   <data name="UnitGB" xml:space="preserve">
     <value>GB</value>
   </data>
   <data name="UnitMB" xml:space="preserve">
     <value>MB</value>
+  </data>
+
+  <data name="AuthorName" xml:space="preserve">
+    <value>Yalla Nkardaz</value>
   </data>
 </root>

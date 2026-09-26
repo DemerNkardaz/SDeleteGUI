@@ -24,7 +24,11 @@ public class DriveItem
 	private static string FormatBytes(long bytes)
 	{
 		double gb = bytes / 1024d / 1024d / 1024d;
-		return gb >= 1
+		double tb = gb / 1024d;
+		return
+			tb >= 1
+			? $"{tb:0.#} {Services.Loc.Get("UnitTB")}"
+			: gb >= 1
 			? $"{gb:0.#} {Services.Loc.Get("UnitGB")}"
 			: $"{bytes / 1024d / 1024d:0.#} {Services.Loc.Get("UnitMB")}";
 	}
