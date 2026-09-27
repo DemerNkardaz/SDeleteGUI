@@ -711,12 +711,10 @@ public sealed partial class MainPage : Page
 
 		if (Path.IsPathRooted(exePath))
 		{
-			// Полный путь — проверяем напрямую.
 			found = File.Exists(exePath);
 		}
 		else
 		{
-			// Относительное имя — ищем в PATH.
 			found = IsExecutableInPath(exePath);
 		}
 
@@ -734,9 +732,11 @@ public sealed partial class MainPage : Page
 
 	private static bool IsExecutableInPath(string fileName)
 	{
-		var path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process) ?? "";
-		System.Diagnostics.Debug.WriteLine($"[Sdelete] IsExecutableInPath: looking for '{fileName}'");
-		System.Diagnostics.Debug.WriteLine($"[Sdelete] PATH = {path}");
+		var machinePath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine) ?? "";
+		var userPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User) ?? "";
+		var path = string.Join(
+			Path.PathSeparator,
+			new[] { machinePath, userPath }.Where(p => !string.IsNullOrWhiteSpace(p)));
 
 		foreach (var dir in path.Split(Path.PathSeparator))
 		{
@@ -744,7 +744,6 @@ public sealed partial class MainPage : Page
 			try
 			{
 				var fullPath = Path.Combine(dir.Trim('"'), fileName);
-				System.Diagnostics.Debug.WriteLine($"[Sdelete]   checking {fullPath} → {File.Exists(fullPath)}");
 				if (File.Exists(fullPath)) return true;
 			}
 			catch { }

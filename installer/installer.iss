@@ -22,12 +22,12 @@
 #if AppArchitecture == "x64"
   #define InstallArchitecture "x64compatible"
   #define PublishDir "..\bin\Release\net10.0-windows10.0.26100.0\win-x64\publish"
-  #define OutputName "SDeleteGUIx64_Setup"
+  #define OutputName "SDeleteGUI_x64_Setup"
 #elif AppArchitecture == "arm64"
   #define InstallArchitecture "arm64"
   #define PublishDir "..\bin\Release\net10.0-windows10.0.26100.0\win-arm64\publish"
-  #define OutputName "SDeleteGUIARM_Setup"
-#else
+  #define OutputName "SDeleteGUI_ARM_Setup"
+#els
   #error AppArchitecture must be either "x64" or "arm64"
 #endif
 
