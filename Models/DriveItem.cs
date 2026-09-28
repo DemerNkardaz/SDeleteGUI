@@ -14,6 +14,8 @@ public class DriveItem
 	public string Glyph { get; set; } = "\uEDA2";
 	public long TotalSize { get; set; }
 	public long FreeSpace { get; set; }
+	public string TypeLabel { get; set; } = string.Empty;
+	public bool IsFlashBased { get; set; }
 
 	public double UsedPercent =>
 		TotalSize > 0 ? (double)(TotalSize - FreeSpace) / TotalSize * 100 : 0;

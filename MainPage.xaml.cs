@@ -46,7 +46,14 @@ public sealed partial class MainPage : Page
 	{
 		InitializeComponent();
 
-		Loaded += async (_, _) => await ShowBlockedPathsWarningAsync();
+		Loaded += async (_, _) =>
+		{
+			await ShowBlockedPathsWarningAsync();
+
+			var flash = DrivesGridView.SelectedItems.OfType<DriveItem>().Where(d => d.IsFlashBased).ToList();
+			if (flash.Count > 0)
+				await ShowFlashWarningAsync(flash);
+		};
 
 		InitializeStatusBar();
 
@@ -224,6 +231,7 @@ public sealed partial class MainPage : Page
 
 			var label = string.IsNullOrWhiteSpace(drive.VolumeLabel) ? Loc.Get("LocalDisk") : drive.VolumeLabel;
 			var letter = drive.Name.TrimEnd('\\');
+			var kind = DriveTypeDetector.Detect(drive);
 
 			_drives.Add(new DriveItem
 			{
@@ -231,6 +239,8 @@ public sealed partial class MainPage : Page
 				DriveLetter = letter,
 				DisplayName = TruncateLabel(label),
 				Glyph = GetGlyphForDriveType(drive.DriveType),
+				TypeLabel = DriveTypeDetector.GetLabel(kind),
+				IsFlashBased = kind is DriveKind.Ssd or DriveKind.Flash,
 				TotalSize = drive.TotalSize,
 				FreeSpace = drive.TotalFreeSpace
 			});
@@ -246,10 +256,37 @@ public sealed partial class MainPage : Page
 		_ => "\uEDA2",
 	};
 
-	private void OnDrivesSelectionChanged(object sender, SelectionChangedEventArgs e)
+	private async void OnDrivesSelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		if (!_isReady) return;
 		RefreshCommandPreview();
+
+		var flash = e.AddedItems.OfType<DriveItem>().Where(d => d.IsFlashBased).ToList();
+		if (flash.Count > 0)
+			await ShowFlashWarningAsync(flash);
+	}
+
+	private async Task ShowFlashWarningAsync(IEnumerable<DriveItem> drives)
+	{
+		if (XamlRoot is null)
+			return;
+
+		var kinds = string.Join("/", drives.Select(d => d.TypeLabel).Distinct());
+
+		var dialog = new ContentDialog
+		{
+			XamlRoot = XamlRoot,
+			Title = Loc.Get("FlashWarningTitle"),
+			Content = new TextBlock
+			{
+				Text = Loc.Format("FlashWarningText", kinds),
+				TextWrapping = TextWrapping.Wrap
+			},
+			CloseButtonText = Loc.Get("DialogOkButton"),
+			DefaultButton = ContentDialogButton.Close
+		};
+
+		await dialog.ShowAsync();
 	}
 
 	// Paths management
@@ -782,6 +819,7 @@ public sealed partial class MainPage : Page
 				: "$ " + _options.BuildCommandLine();
 
 			_outputBuffer.Clear();
+			ResetProgressTracking();
 			_outputBuffer.AppendLine(previewText);
 
 			OutputTextBox.Text = previewText;
@@ -790,6 +828,7 @@ public sealed partial class MainPage : Page
 		{
 			var errorText = $"{Loc.Get("CommandBuildInternalError")}\n{ex}";
 			_outputBuffer.Clear();
+			ResetProgressTracking();
 			_outputBuffer.AppendLine(errorText);
 			OutputTextBox.Text = errorText;
 		}
@@ -933,6 +972,42 @@ public sealed partial class MainPage : Page
 		new(@"\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\a]*\a",
 		System.Text.RegularExpressions.RegexOptions.Compiled);
 
+	private static readonly System.Text.RegularExpressions.Regex PercentLineRegex =
+		new(@"^(?<pre>.*?)(?<pct>\d{1,3})%(?<tail>[\p{L}\s]*)$",
+			System.Text.RegularExpressions.RegexOptions.Compiled);
+
+	private static readonly System.Text.RegularExpressions.Regex SpinnerLineRegex =
+		new(@"^(?<key>.*\.\.\.)[\\|/\-]\s*$",
+			System.Text.RegularExpressions.RegexOptions.Compiled);
+
+	private readonly record struct ProgressLine(string Key, int Percent, bool IsSpinner);
+
+	private ProgressLine? _lastProgress;
+	private int _lastLineStart = -1;
+
+	private static ProgressLine? ParseProgressLine(string line)
+	{
+		var percent = PercentLineRegex.Match(line);
+		if (percent.Success)
+		{
+			var key = percent.Groups["pre"].Value + "%" + percent.Groups["tail"].Value;
+			return new ProgressLine(key, int.Parse(percent.Groups["pct"].Value), false);
+		}
+
+		var spinner = SpinnerLineRegex.Match(line);
+		if (spinner.Success)
+			return new ProgressLine(spinner.Groups["key"].Value, 0, true);
+
+		return null;
+	}
+
+	private void ResetProgressTracking()
+	{
+		_lastProgress = null;
+		_lastLineStart = -1;
+	}
+
+
 	/// <summary>
 	/// Starts the sdelete process with the current options,
 	/// captures its output and error streams, and appends them to the OutputTextBox in real-time.
@@ -1024,7 +1099,29 @@ public sealed partial class MainPage : Page
 
 	private void AppendOutputLine(string line)
 	{
+		var progress = ParseProgressLine(line);
+
+		if (progress is { } current && _lastProgress is { } previous
+			&& current.IsSpinner == previous.IsSpinner
+			&& current.Key == previous.Key
+			&& (current.IsSpinner || current.Percent >= previous.Percent))
+		{
+			_outputBuffer.Length = _lastLineStart;
+		}
+		else
+		{
+			if (_lastProgress is { IsSpinner: true } spinner
+				&& _lastLineStart >= 0 && _lastLineStart <= _outputBuffer.Length)
+			{
+				_outputBuffer.Length = _lastLineStart;
+				_outputBuffer.AppendLine(spinner.Key);
+			}
+
+			_lastLineStart = _outputBuffer.Length;
+		}
+
 		_outputBuffer.AppendLine(line);
+		_lastProgress = progress;
 
 		OutputTextBox.Text = _outputBuffer.ToString();
 
@@ -1032,7 +1129,7 @@ public sealed partial class MainPage : Page
 		OutputTextBox.SelectionLength = 0;
 
 		_outputScrollViewer ??= FindDescendant<ScrollViewer>(OutputTextBox);
-    	_outputScrollViewer?.ChangeView(null, _outputScrollViewer.ScrollableHeight, null, disableAnimation: true);
+		_outputScrollViewer?.ChangeView(null, _outputScrollViewer.ScrollableHeight, null, disableAnimation: true);
 	}
 
 	private void UpdateSdeletePresenceWarning()

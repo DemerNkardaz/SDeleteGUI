@@ -216,12 +216,15 @@
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
-                                            <TextBlock Text="{Binding DriveLetter}"
-                                                      FontSize="11"
-                                                      FontWeight="SemiBold"
-                                                      HorizontalAlignment="Left"
-                                                      VerticalAlignment="Top"
-                                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
+                                                <TextBlock Text="{Binding DriveLetter}"
+                                                          FontSize="11"
+                                                          FontWeight="SemiBold"
+                                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding TypeLabel}"
+                                                          FontSize="11"
+                                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                            </StackPanel>
 
                                             <FontIcon Grid.Row="0"
                                                       Glyph="{Binding Glyph}"

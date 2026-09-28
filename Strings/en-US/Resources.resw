@@ -242,6 +242,18 @@ Do you want to stop and exit?</value>
     <value>OK</value>
   </data>
 
+  <data name="DriveTypeSsd" xml:space="preserve"><value>SSD</value></data>
+  <data name="DriveTypeHdd" xml:space="preserve"><value>HDD</value></data>
+  <data name="DriveTypeFlash" xml:space="preserve"><value>Flash</value></data>
+  <data name="DriveTypeNetwork" xml:space="preserve"><value>Net</value></data>
+  <data name="DriveTypeCdRom" xml:space="preserve"><value>CD</value></data>
+  <data name="DriveTypeRam" xml:space="preserve"><value>RAM</value></data>
+  <data name="FlashWarningTitle" xml:space="preserve"><value>Warning</value></data>
+  <data name="FlashWarningText" xml:space="preserve">
+    <value>You have selected {0} storage. Using SDelete on such drives does not guarantee that data is destroyed. Wiping the drive may significantly accelerate the wear of {0} storage.</value>
+  </data>
+  <data name="DialogOkButton" xml:space="preserve"><value>OK</value></data>
+
   <data name="PathsStats" xml:space="preserve">
     <value>{0} files · {1} folders · {2}</value>
   </data>

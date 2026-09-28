@@ -242,6 +242,18 @@
     <value>OK</value>
   </data>
 
+  <data name="DriveTypeSsd" xml:space="preserve"><value>SSD</value></data>
+  <data name="DriveTypeHdd" xml:space="preserve"><value>HDD</value></data>
+  <data name="DriveTypeFlash" xml:space="preserve"><value>Flash</value></data>
+  <data name="DriveTypeNetwork" xml:space="preserve"><value>Сеть</value></data>
+  <data name="DriveTypeCdRom" xml:space="preserve"><value>CD</value></data>
+  <data name="DriveTypeRam" xml:space="preserve"><value>RAM</value></data>
+  <data name="FlashWarningTitle" xml:space="preserve"><value>Предупреждение</value></data>
+  <data name="FlashWarningText" xml:space="preserve">
+    <value>Вы выбрали {0}-накопитель. Использование SDelete на таких накопителях не гарантирует уничтожение данных. Очистка диска может значительно ускорить износ {0}-накопителя.</value>
+  </data>
+  <data name="DialogOkButton" xml:space="preserve"><value>OK</value></data>
+
   <data name="PathsStats" xml:space="preserve">
     <value>Файлов: {0} · Папок: {1} · {2}</value>
   </data>
