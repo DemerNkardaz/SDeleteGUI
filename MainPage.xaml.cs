@@ -284,6 +284,7 @@ public sealed partial class MainPage : Page
 
 		UpdateEmptyPathsHint();
 		RefreshCommandPreview();
+		RecalculatePathStats();
 	}
 
 	private void ClearPathsButton_Click(object sender, RoutedEventArgs e)
@@ -298,6 +299,7 @@ public sealed partial class MainPage : Page
 
 		UpdateEmptyPathsHint();
 		RefreshCommandPreview();
+		RecalculatePathStats();
 	}
 
 	// Drag-and-drop
@@ -444,6 +446,7 @@ public sealed partial class MainPage : Page
 			_ = LoadPathIconAsync(entry, iconImage, iconFallback);
 
 			RefreshCommandPreview();
+			RecalculatePathStats();
 		}
 	}
 
@@ -537,6 +540,7 @@ public sealed partial class MainPage : Page
 		PathsPanel.Children.Remove(row);
 		UpdateEmptyPathsHint();
 		RefreshCommandPreview();
+		RecalculatePathStats();
 	}
 
 	private void UpdateEmptyPathsHint()
@@ -544,6 +548,95 @@ public sealed partial class MainPage : Page
 		EmptyPathsHint.Visibility = _pathEntries.Count == 0
 			? Visibility.Visible
 			: Visibility.Collapsed;
+	}
+
+	// Path statistics
+
+	private enum PathStatsState { Counting, Done, Stopped }
+
+	private CancellationTokenSource? _statsCts;
+	private PathStats _lastStats;
+	private bool _statsInProgress;
+
+	private async void RecalculatePathStats()
+	{
+		_statsCts?.Cancel();
+
+		if (_pathEntries.Count == 0)
+		{
+			_statsInProgress = false;
+			PathsStatsText.Text = string.Empty;
+			return;
+		}
+
+		var cts = new CancellationTokenSource();
+		_statsCts = cts;
+		_statsInProgress = true;
+		_lastStats = default;
+
+		var snapshot = _pathEntries.Select(p => (p.Path, p.IsDirectory)).ToList();
+
+		var progress = new Progress<PathStats>(stats =>
+		{
+			if (cts.IsCancellationRequested)
+				return;
+
+			_lastStats = stats;
+			ShowStats(stats, PathStatsState.Counting);
+		});
+
+		try
+		{
+			await Task.Delay(150, cts.Token);
+
+			var result = await Task.Run(
+				() => PathStatsCalculator.Calculate(snapshot, progress, cts.Token),
+				cts.Token);
+
+			if (cts.IsCancellationRequested)
+				return;
+
+			_lastStats = result;
+			ShowStats(result, PathStatsState.Done);
+		}
+		catch (OperationCanceledException)
+		{
+		}
+		finally
+		{
+			if (ReferenceEquals(_statsCts, cts))
+				_statsInProgress = false;
+		}
+	}
+
+	private void StopPathStatsCounting()
+	{
+		if (!_statsInProgress || _statsCts is null)
+			return;
+
+		_statsCts.Cancel();
+		_statsInProgress = false;
+
+		if (_lastStats == default)
+			PathsStatsText.Text = string.Empty;
+		else
+			ShowStats(_lastStats, PathStatsState.Stopped);
+	}
+
+	private void ShowStats(PathStats stats, PathStatsState state)
+	{
+		var key = state switch
+		{
+			PathStatsState.Counting => "PathsStatsCounting",
+			PathStatsState.Stopped => "PathsStatsStopped",
+			_ => "PathsStats"
+		};
+
+		PathsStatsText.Text = Loc.Format(
+			key,
+			stats.Files.ToString("N0"),
+			stats.Folders.ToString("N0"),
+			SizeFormatter.Format(stats.Bytes));
 	}
 
 	private nint GetWindowHandle() => WindowNative.GetWindowHandle(App.MainWindow);
@@ -662,6 +755,8 @@ public sealed partial class MainPage : Page
 		if (!confirmed)
 			return;
 
+		StopPathStatsCounting();
+
 		_isRunning = true;
 		UpdateRunButtonVisual();
 		SetStatusRunning();
@@ -676,6 +771,7 @@ public sealed partial class MainPage : Page
 			_isRunning = false;
 			UpdateRunButtonVisual();
 			SetUiEnabled(true);
+			RecalculatePathStats();
 		}
 	}
 

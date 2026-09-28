@@ -229,6 +229,21 @@ Do you want to stop and exit?</value>
     <value>Show in Explorer</value>
   </data>
 
+    <data name="PathsStats" xml:space="preserve">
+    <value>{0} files · {1} folders · {2}</value>
+  </data>
+  <data name="PathsStatsCounting" xml:space="preserve">
+    <value>Counting… {0} files · {1} folders · {2}</value>
+  </data>
+  <data name="PathsStatsStopped" xml:space="preserve">
+    <value>Count stopped: {0} files · {1} folders · {2} (partial)</value>
+  </data>
+  <data name="UnitB" xml:space="preserve">
+    <value>B</value>
+  </data>
+  <data name="UnitKB" xml:space="preserve">
+    <value>KB</value>
+  </data>
   <data name="UnitTB" xml:space="preserve">
     <value>TB</value>
   </data>

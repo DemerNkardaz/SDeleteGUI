@@ -123,11 +123,26 @@
                                 </StackPanel>
                             </ScrollViewer>
 
-                          <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
-                              <Button x:Name="AddFilesButton" x:Uid="AddFilesButton" Click="AddFiles_Click" Width="144"/>
-                              <Button x:Name="AddFolderButton" x:Uid="AddFolderButton" Click="AddFolder_Click" Width="144"/>
-                              <Button x:Name="ClearPathsButton" x:Uid="ClearPathsButton" Click="ClearPathsButton_Click" Width="96"/>
-                          </StackPanel>
+                            <Grid Grid.Row="2" ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                    <Button x:Name="AddFilesButton" x:Uid="AddFilesButton" Click="AddFiles_Click"/>
+                                    <Button x:Name="AddFolderButton" x:Uid="AddFolderButton" Click="AddFolder_Click"/>
+                                    <Button x:Name="ClearPathsButton" x:Uid="ClearPathsButton" Click="ClearPathsButton_Click"/>
+                                </StackPanel>
+
+                                <TextBlock x:Name="PathsStatsText"
+                                          Grid.Column="1"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Center"
+                                          FontSize="12"
+                                          TextTrimming="CharacterEllipsis"
+                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </Grid>
                         </Grid>
                     </Border>
 

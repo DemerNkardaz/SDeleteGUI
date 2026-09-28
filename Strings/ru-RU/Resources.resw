@@ -229,6 +229,21 @@
     <value>Показать в Проводнике</value>
   </data>
 
+  <data name="PathsStats" xml:space="preserve">
+    <value>Файлов: {0} · Папок: {1} · {2}</value>
+  </data>
+  <data name="PathsStatsCounting" xml:space="preserve">
+    <value>Подсчёт… файлов: {0} · папок: {1} · {2}</value>
+  </data>
+  <data name="PathsStatsStopped" xml:space="preserve">
+    <value>Подсчёт прерван: файлов {0} · папок {1} · {2} (неполные данные)</value>
+  </data>
+  <data name="UnitB" xml:space="preserve">
+    <value>Б</value>
+  </data>
+  <data name="UnitKB" xml:space="preserve">
+    <value>КБ</value>
+  </data>
   <data name="UnitTB" xml:space="preserve">
    <value>ТБ</value>
   </data>
