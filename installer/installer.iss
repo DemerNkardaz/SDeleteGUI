@@ -27,7 +27,7 @@
   #define InstallArchitecture "arm64"
   #define PublishDir "..\bin\Release\net10.0-windows10.0.26100.0\win-arm64\publish"
   #define OutputName "SDeleteGUI_ARM_Setup"
-#els
+#else
   #error AppArchitecture must be either "x64" or "arm64"
 #endif
 
