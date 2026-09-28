@@ -225,6 +225,10 @@
     <value>~ Ошибка запуска: {0}</value>
   </data>
 
+  <data name="OpenPathToolTip" xml:space="preserve">
+    <value>Показать в Проводнике</value>
+  </data>
+
   <data name="UnitTB" xml:space="preserve">
    <value>ТБ</value>
   </data>

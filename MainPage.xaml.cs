@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Media;
 using Windows.Storage.Pickers;
 using Windows.UI;
 using WinRT.Interop;
+using System.Runtime.InteropServices;
 
 using SDeleteGUI.Models;
 using SDeleteGUI.Services;
@@ -350,10 +351,33 @@ public sealed partial class MainPage : Page
 	private FrameworkElement BuildPathRow(PathEntry entry)
 	{
 		var grid = new Grid { ColumnSpacing = 8 };
+		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+		var iconFallback = new FontIcon
+		{
+			Glyph = entry.IsDirectory ? "\uE8B7" : "\uE8A5",
+			FontSize = 20,
+			HorizontalAlignment = HorizontalAlignment.Center,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+		var iconImage = new Image { Width = 24, Height = 24, Visibility = Visibility.Collapsed };
+		var iconHost = new Grid { Width = 24, Height = 24, VerticalAlignment = VerticalAlignment.Center };
+		iconHost.Children.Add(iconFallback);
+		iconHost.Children.Add(iconImage);
+
+		var iconButton = new Button
+		{
+			Style = (Style)Resources["PathIconButtonStyle"],
+			Content = iconHost
+		};
+		ToolTipService.SetToolTip(iconButton, Loc.Get("OpenPathToolTip"));
+		iconButton.Click += (_, _) => OpenPathInExplorer(entry);
+		Grid.SetColumn(iconButton, 0);
+		_ = LoadPathIconAsync(entry, iconImage, iconFallback);
 
 		var pathTextBox = new TextBox
 		{
@@ -361,7 +385,7 @@ public sealed partial class MainPage : Page
 			IsReadOnly = true,
 			VerticalAlignment = VerticalAlignment.Center
 		};
-		Grid.SetColumn(pathTextBox, 0);
+		Grid.SetColumn(pathTextBox, 1);
 
 		var contentsOnlyCheckBox = new CheckBox
 		{
@@ -372,16 +396,18 @@ public sealed partial class MainPage : Page
 		};
 		contentsOnlyCheckBox.Checked += (_, _) => { entry.ContentsOnly = true; RefreshCommandPreview(); };
 		contentsOnlyCheckBox.Unchecked += (_, _) => { entry.ContentsOnly = false; RefreshCommandPreview(); };
-		Grid.SetColumn(contentsOnlyCheckBox, 1);
+		Grid.SetColumn(contentsOnlyCheckBox, 2);
 
 		var changeButton = new Button { Content = Loc.Get("ChangePathButton") };
-		changeButton.Click += async (_, _) => await ChangePathAsync(entry, pathTextBox, contentsOnlyCheckBox);
-		Grid.SetColumn(changeButton, 2);
+		changeButton.Click += async (_, _) =>
+			await ChangePathAsync(entry, pathTextBox, contentsOnlyCheckBox, iconImage, iconFallback);
+		Grid.SetColumn(changeButton, 3);
 
 		var removeButton = new Button { Content = "✕" };
 		removeButton.Click += (_, _) => RemovePathRow(entry, grid);
-		Grid.SetColumn(removeButton, 3);
+		Grid.SetColumn(removeButton, 4);
 
+		grid.Children.Add(iconButton);
 		grid.Children.Add(pathTextBox);
 		grid.Children.Add(contentsOnlyCheckBox);
 		grid.Children.Add(changeButton);
@@ -390,7 +416,12 @@ public sealed partial class MainPage : Page
 		return grid;
 	}
 
-	private async Task ChangePathAsync(PathEntry entry, TextBox pathTextBox, CheckBox contentsOnlyCheckBox)
+	private async Task ChangePathAsync(
+		PathEntry entry,
+		TextBox pathTextBox,
+		CheckBox contentsOnlyCheckBox,
+		Image iconImage,
+		FontIcon iconFallback)
 	{
 		var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
 		picker.FileTypeFilter.Add("*");
@@ -405,7 +436,98 @@ public sealed partial class MainPage : Page
 			pathTextBox.Text = file.Path;
 			contentsOnlyCheckBox.IsChecked = false;
 			contentsOnlyCheckBox.Visibility = Visibility.Collapsed;
+
+			iconImage.Source = null;
+			iconImage.Visibility = Visibility.Collapsed;
+			iconFallback.Glyph = "\uE8A5";
+			iconFallback.Visibility = Visibility.Visible;
+			_ = LoadPathIconAsync(entry, iconImage, iconFallback);
+
 			RefreshCommandPreview();
+		}
+	}
+
+	private static async Task LoadPathIconAsync(PathEntry entry, Image image, FontIcon fallback)
+	{
+		try
+		{
+			Windows.Storage.IStorageItemProperties item;
+			if (entry.IsDirectory)
+				item = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(entry.Path);
+			else
+				item = await Windows.Storage.StorageFile.GetFileFromPathAsync(entry.Path);
+
+			using var thumbnail = await item.GetThumbnailAsync(
+				Windows.Storage.FileProperties.ThumbnailMode.ListView,
+				32,
+				Windows.Storage.FileProperties.ThumbnailOptions.UseCurrentScale);
+
+			if (thumbnail is null)
+				return;
+
+			var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
+			await bitmap.SetSourceAsync(thumbnail);
+
+			image.Source = bitmap;
+			image.Visibility = Visibility.Visible;
+			fallback.Visibility = Visibility.Collapsed;
+		}
+		catch
+		{
+		}
+	}
+
+	[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+	private static extern int SHParseDisplayName(
+		string pszName, IntPtr pbc, out IntPtr ppidl, uint sfgaoIn, out uint psfgaoOut);
+
+	[DllImport("shell32.dll")]
+	private static extern int SHOpenFolderAndSelectItems(
+		IntPtr pidlFolder, uint cidl, IntPtr[]? apidl, uint dwFlags);
+
+	[DllImport("ole32.dll")]
+	private static extern void CoTaskMemFree(IntPtr pv);
+
+	private static void OpenPathInExplorer(PathEntry entry)
+	{
+		try
+		{
+			if (entry.IsDirectory)
+			{
+				if (Directory.Exists(entry.Path))
+					Process.Start(new ProcessStartInfo(entry.Path) { UseShellExecute = true });
+				return;
+			}
+
+			if (!File.Exists(entry.Path))
+				return;
+
+			if (!TrySelectInShell(entry.Path))
+			{
+				var parent = Path.GetDirectoryName(entry.Path);
+				if (!string.IsNullOrEmpty(parent))
+					Process.Start(new ProcessStartInfo(parent) { UseShellExecute = true });
+			}
+		}
+		catch
+		{
+		}
+	}
+
+	private static bool TrySelectInShell(string path)
+	{
+		var pidl = IntPtr.Zero;
+		try
+		{
+			if (SHParseDisplayName(path, IntPtr.Zero, out pidl, 0, out _) != 0 || pidl == IntPtr.Zero)
+				return false;
+
+			return SHOpenFolderAndSelectItems(pidl, 0, null, 0) == 0;
+		}
+		finally
+		{
+			if (pidl != IntPtr.Zero)
+				CoTaskMemFree(pidl);
 		}
 	}
 

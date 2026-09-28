@@ -225,6 +225,10 @@ Do you want to stop and exit?</value>
     <value>~ Launch error: {0}</value>
   </data>
 
+  <data name="OpenPathToolTip" xml:space="preserve">
+    <value>Show in Explorer</value>
+  </data>
+
   <data name="UnitTB" xml:space="preserve">
     <value>TB</value>
   </data>

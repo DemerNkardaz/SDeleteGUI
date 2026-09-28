@@ -8,6 +8,69 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <Style x:Key="PathIconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}"/>
+            <Setter Property="UseSystemFocusVisuals" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="RootGrid"
+                              Background="{TemplateBinding Background}"
+                              CornerRadius="{TemplateBinding CornerRadius}">
+                            <ContentPresenter x:Name="ContentPresenter"
+                                              Padding="{TemplateBinding Padding}"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              HorizontalContentAlignment="Center"
+                                              VerticalContentAlignment="Center"
+                                              RenderTransformOrigin="0.5,0.5">
+                                <ContentPresenter.RenderTransform>
+                                    <ScaleTransform x:Name="ContentScale"/>
+                                </ContentPresenter.RenderTransform>
+                            </ContentPresenter>
+
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal"/>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootGrid.Background"
+                                                    Value="{ThemeResource SubtleFillColorSecondaryBrush}"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootGrid.Background"
+                                                    Value="{ThemeResource SubtleFillColorTertiaryBrush}"/>
+                                        </VisualState.Setters>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="ContentScale"
+                                                            Storyboard.TargetProperty="ScaleX"
+                                                            To="0.86" Duration="0:0:0.08"/>
+                                            <DoubleAnimation Storyboard.TargetName="ContentScale"
+                                                            Storyboard.TargetProperty="ScaleY"
+                                                            To="0.86" Duration="0:0:0.08"/>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <VisualState.Setters>
+                                            <Setter Target="ContentPresenter.Opacity" Value="0.4"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
     <Grid Padding="16" RowSpacing="12"
       Background="Transparent"
       AllowDrop="True"
@@ -256,7 +319,7 @@
 
         <!-- Console output -->
         <Border Grid.Row="2"
-                Background="White"
+                Background="{ThemeResource ControlFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="8"
@@ -266,10 +329,14 @@
                     AcceptsReturn="True"
                     TextWrapping="Wrap"
                     BorderThickness="0"
-                    Background="White"
-                    Foreground="Black"
+                    Background="Transparent"
                     FontFamily="Consolas"
-                    ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <TextBox.Resources>
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent"/>
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent"/>
+                </TextBox.Resources>
+            </TextBox>
         </Border>
 
         <ContentDialog x:Name="ConfirmDialog"
