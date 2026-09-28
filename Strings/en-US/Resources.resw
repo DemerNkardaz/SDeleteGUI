@@ -229,7 +229,20 @@ Do you want to stop and exit?</value>
     <value>Show in Explorer</value>
   </data>
 
-    <data name="PathsStats" xml:space="preserve">
+  <data name="BlockedPathsTitle" xml:space="preserve">
+    <value>Path not added</value>
+  </data>
+  <data name="BlockedPathsText" xml:space="preserve">
+    <value>System and critical system folders or files cannot be added to the deletion list</value>
+  </data>
+  <data name="BlockedPathsMore" xml:space="preserve">
+    <value>…and {0} more</value>
+  </data>
+  <data name="BlockedPathsClose" xml:space="preserve">
+    <value>OK</value>
+  </data>
+
+  <data name="PathsStats" xml:space="preserve">
     <value>{0} files · {1} folders · {2}</value>
   </data>
   <data name="PathsStatsCounting" xml:space="preserve">

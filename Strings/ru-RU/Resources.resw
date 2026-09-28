@@ -229,6 +229,19 @@
     <value>Показать в Проводнике</value>
   </data>
 
+  <data name="BlockedPathsTitle" xml:space="preserve">
+    <value>Путь не добавлен</value>
+  </data>
+  <data name="BlockedPathsText" xml:space="preserve">
+    <value>Невозможно добавить системные/критически значимые для работы системы папки или файлы в список на удаление</value>
+  </data>
+  <data name="BlockedPathsMore" xml:space="preserve">
+    <value>…и ещё {0}</value>
+  </data>
+  <data name="BlockedPathsClose" xml:space="preserve">
+    <value>OK</value>
+  </data>
+
   <data name="PathsStats" xml:space="preserve">
     <value>Файлов: {0} · Папок: {1} · {2}</value>
   </data>

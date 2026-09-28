@@ -21,6 +21,9 @@ public sealed partial class MainPage : Page
 {
 	private readonly SDeleteOptions _options = new();
 	private readonly List<PathEntry> _pathEntries = new();
+
+	private readonly List<string> _blockedPaths = new();
+
 	private readonly ObservableCollection<DriveItem> _drives = new();
 
 	private bool _isReady;
@@ -42,6 +45,9 @@ public sealed partial class MainPage : Page
 	public MainPage()
 	{
 		InitializeComponent();
+
+		Loaded += async (_, _) => await ShowBlockedPathsWarningAsync();
+
 		InitializeStatusBar();
 
 		RunButton.Content = Loc.Get("RunButton");
@@ -259,6 +265,8 @@ public sealed partial class MainPage : Page
 		{
 			AddPathRow(file.Path, isDirectory: false);
 		}
+
+		await ShowBlockedPathsWarningAsync();
 	}
 
 	private async void AddFolder_Click(object sender, RoutedEventArgs e)
@@ -271,11 +279,18 @@ public sealed partial class MainPage : Page
 		if (folder != null)
 		{
 			AddPathRow(folder.Path, isDirectory: true);
+			await ShowBlockedPathsWarningAsync();
 		}
 	}
 
-	private void AddPathRow(string path, bool isDirectory, bool contentsOnly = false)
+	private bool AddPathRow(string path, bool isDirectory, bool contentsOnly = false)
 	{
+		if (SystemPathGuard.IsProtected(path))
+		{
+			_blockedPaths.Add(path);
+			return false;
+		}
+
 		var entry = new PathEntry { Path = path, IsDirectory = isDirectory, ContentsOnly = contentsOnly };
 		_pathEntries.Add(entry);
 
@@ -285,6 +300,49 @@ public sealed partial class MainPage : Page
 		UpdateEmptyPathsHint();
 		RefreshCommandPreview();
 		RecalculatePathStats();
+
+		return true;
+	}
+
+	private async Task ShowBlockedPathsWarningAsync()
+	{
+		if (_blockedPaths.Count == 0 || XamlRoot is null)
+			return;
+
+		var blocked = _blockedPaths.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+		_blockedPaths.Clear();
+
+		const int maxListed = 5;
+		var details = string.Join(Environment.NewLine, blocked.Take(maxListed));
+		if (blocked.Count > maxListed)
+			details += Environment.NewLine + Loc.Format("BlockedPathsMore", blocked.Count - maxListed);
+
+		var content = new StackPanel { Spacing = 12 };
+		content.Children.Add(new TextBlock
+		{
+			Text = Loc.Get("BlockedPathsText"),
+			TextWrapping = TextWrapping.Wrap
+		});
+		content.Children.Add(new TextBlock
+		{
+			Text = details,
+			TextWrapping = TextWrapping.Wrap,
+			FontFamily = new FontFamily("Consolas"),
+			FontSize = 12,
+			IsTextSelectionEnabled = true,
+			Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+		});
+
+		var dialog = new ContentDialog
+		{
+			XamlRoot = XamlRoot,
+			Title = Loc.Get("BlockedPathsTitle"),
+			Content = content,
+			CloseButtonText = Loc.Get("BlockedPathsClose"),
+			DefaultButton = ContentDialogButton.Close
+		};
+
+		await dialog.ShowAsync();
 	}
 
 	private void ClearPathsButton_Click(object sender, RoutedEventArgs e)
@@ -348,6 +406,8 @@ public sealed partial class MainPage : Page
 		{
 			deferral.Complete();
 		}
+
+		await ShowBlockedPathsWarningAsync();
 	}
 
 	private FrameworkElement BuildPathRow(PathEntry entry)
@@ -432,6 +492,13 @@ public sealed partial class MainPage : Page
 		var file = await picker.PickSingleFileAsync();
 		if (file != null)
 		{
+			if (SystemPathGuard.IsProtected(file.Path))
+			{
+				_blockedPaths.Add(file.Path);
+				await ShowBlockedPathsWarningAsync();
+				return;
+			}
+
 			entry.Path = file.Path;
 			entry.IsDirectory = false;
 			entry.ContentsOnly = false;
