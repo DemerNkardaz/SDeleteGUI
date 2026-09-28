@@ -8,7 +8,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Padding="16" RowSpacing="12">
+    <Grid Padding="16" RowSpacing="12"
+      Background="Transparent"
+      AllowDrop="True"
+      DragOver="RootGrid_DragOver"
+      Drop="RootGrid_Drop">
         <Grid.RowDefinitions>
             <!-- Tabs -->
             <RowDefinition Height="Auto"/>

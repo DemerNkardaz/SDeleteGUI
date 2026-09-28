@@ -90,6 +90,9 @@
   <data name="RemoveReadOnlyCheckBox.Content" xml:space="preserve">
     <value>Снимать атрибут «только для чтения»</value>
   </data>
+  <data name="DropToAddCaption" xml:space="preserve">
+    <value>Добавить в список удаления</value>
+  </data>
 
   <data name="DrivesHeader.Text" xml:space="preserve">
     <value>Диски и устройства</value>

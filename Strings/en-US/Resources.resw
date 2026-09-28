@@ -90,6 +90,9 @@
   <data name="RemoveReadOnlyCheckBox.Content" xml:space="preserve">
     <value>Clear read-only attribute</value>
   </data>
+  <data name="DropToAddCaption" xml:space="preserve">
+    <value>Add to deletion list</value>
+  </data>
 
   <data name="DrivesHeader.Text" xml:space="preserve">
     <value>Drives and devices</value>

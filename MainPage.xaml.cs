@@ -299,6 +299,54 @@ public sealed partial class MainPage : Page
 		RefreshCommandPreview();
 	}
 
+	// Drag-and-drop
+
+	private void RootGrid_DragOver(object sender, DragEventArgs e)
+	{
+		if (_isRunning ||
+			!e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
+		{
+			e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+			return;
+		}
+
+		e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
+		e.DragUIOverride.Caption = Loc.Get("DropToAddCaption");
+	}
+
+	private async void RootGrid_Drop(object sender, DragEventArgs e)
+	{
+		if (_isRunning ||
+			!e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
+			return;
+
+		var deferral = e.GetDeferral();
+		try
+		{
+			var items = await e.DataView.GetStorageItemsAsync();
+			var added = false;
+
+			foreach (var item in items)
+			{
+				if (string.IsNullOrEmpty(item.Path))
+					continue;
+
+				if (_pathEntries.Any(p => string.Equals(p.Path, item.Path, StringComparison.OrdinalIgnoreCase)))
+					continue;
+
+				AddPathRow(item.Path, isDirectory: item.IsOfType(Windows.Storage.StorageItemTypes.Folder));
+				added = true;
+			}
+
+			if (added)
+				MainPivot.SelectedIndex = 0;
+		}
+		finally
+		{
+			deferral.Complete();
+		}
+	}
+
 	private FrameworkElement BuildPathRow(PathEntry entry)
 	{
 		var grid = new Grid { ColumnSpacing = 8 };
