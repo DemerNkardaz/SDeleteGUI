@@ -139,7 +139,6 @@
                                           Grid.Column="1"
                                           HorizontalAlignment="Right"
                                           VerticalAlignment="Center"
-                                          FontSize="12"
                                           TextTrimming="CharacterEllipsis"
                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                             </Grid>
@@ -203,12 +202,12 @@
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <GridView.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <ItemsWrapGrid Orientation="Horizontal" ItemWidth="118" ItemHeight="96"/>
+                                        <ItemsWrapGrid Orientation="Horizontal" ItemWidth="174" ItemHeight="100"/>
                                     </ItemsPanelTemplate>
                                 </GridView.ItemsPanel>
                                 <GridView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Width="102" Height="82" Padding="8">
+                                        <Grid Width="152" Height="88" Padding="0,4,0,0">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
@@ -216,41 +215,37 @@
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
-                                            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
+                                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Left" VerticalAlignment="Top">
                                                 <TextBlock Text="{Binding DriveLetter}"
-                                                          FontSize="11"
                                                           FontWeight="SemiBold"
                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                                 <TextBlock Text="{Binding TypeLabel}"
-                                                          FontSize="11"
                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                             </StackPanel>
 
                                             <FontIcon Grid.Row="0"
                                                       Glyph="{Binding Glyph}"
-                                                      FontSize="26"
+                                                      FontSize="28"
                                                       HorizontalAlignment="Center"
-                                                      Margin="0,4,0,0"/>
+                                                      Margin="0,2,0,0"/>
 
                                             <TextBlock Grid.Row="1"
                                                       Text="{Binding DisplayName}"
                                                       TextAlignment="Center"
                                                       TextWrapping="NoWrap"
-                                                      FontSize="12"
-                                                      Margin="0,4,0,0"/>
+                                                      Margin="0,2,0,0"/>
 
                                             <TextBlock Grid.Row="2"
                                                       Text="{Binding CapacityText}"
                                                       TextAlignment="Center"
-                                                      FontSize="10"
                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
 
                                             <ProgressBar Grid.Row="3"
                                                         Value="{Binding UsedPercent}"
                                                         Minimum="0"
-                                                        Maximum="100"
-                                                        Height="4"
-                                                        Margin="0,4,0,0"/>
+                                                        Maximum="150"
+                                                        Height="6"
+                                                        Margin="0,2,0,0"/>
                                         </Grid>
                                     </DataTemplate>
                                 </GridView.ItemTemplate>
@@ -398,7 +393,6 @@
                            Grid.Column="2"
                            Margin="8,0,0,0"
                            VerticalAlignment="Center"
-                           FontSize="12"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
 
                 <InfoBar x:Name="SdeleteNotFoundInfoBar"
@@ -414,14 +408,12 @@
                            Grid.Column="3"
                            Margin="0,0,12,0"
                            VerticalAlignment="Center"
-                           FontSize="12"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
 
                 <HyperlinkButton x:Name="StatusAuthorLink"
                                  Grid.Column="4"
                                  NavigateUri="https://github.com/DemerNkardaz"
                                  Padding="4,0"
-                                 FontSize="12"
                                  VerticalAlignment="Center"/>
             </Grid>
         </Border>

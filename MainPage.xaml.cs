@@ -834,7 +834,7 @@ public sealed partial class MainPage : Page
 		}
 	}
 
-	private static string TruncateLabel(string label, int maxLength = 9)
+	private static string TruncateLabel(string label, int maxLength = 18)
 	{
 		return label.Length > maxLength
 			? label[..maxLength] + "…"
@@ -864,6 +864,7 @@ public sealed partial class MainPage : Page
 		StopPathStatsCounting();
 
 		_isRunning = true;
+		SleepInhibitor.Prevent();
 		UpdateRunButtonVisual();
 		SetStatusRunning();
 		SetUiEnabled(false);
@@ -874,6 +875,7 @@ public sealed partial class MainPage : Page
 		}
 		finally
 		{
+			SleepInhibitor.Allow();
 			_isRunning = false;
 			UpdateRunButtonVisual();
 			SetUiEnabled(true);
