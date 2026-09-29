@@ -10,4 +10,5 @@ public class PathEntry
     public string Path { get; set; } = string.Empty;
     public bool IsDirectory { get; set; }
     public bool ContentsOnly { get; set; }
+    public bool IsDeleted { get; set; }
 }

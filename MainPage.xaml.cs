@@ -21,6 +21,16 @@ public sealed partial class MainPage : Page
 {
 	private readonly SDeleteOptions _options = new();
 	private readonly List<PathEntry> _pathEntries = new();
+	private readonly Dictionary<PathEntry, PathRowControls> _pathRowControls = new();
+
+	private sealed class PathRowControls
+	{
+		public required Grid Row { get; init; }
+		public required TextBox PathTextBox { get; init; }
+		public required CheckBox ContentsOnlyCheckBox { get; init; }
+		public required Button ChangeButton { get; init; }
+		public required Button IconButton { get; init; }
+	}
 
 	private readonly List<string> _blockedPaths = new();
 
@@ -445,6 +455,7 @@ public sealed partial class MainPage : Page
 	private void ClearPathsButton_Click(object sender, RoutedEventArgs e)
 	{
 		_pathEntries.Clear();
+		_pathRowControls.Clear();
 
 		for (var i = PathsPanel.Children.Count - 1; i >= 0; i--)
 		{
@@ -571,6 +582,18 @@ public sealed partial class MainPage : Page
 		grid.Children.Add(contentsOnlyCheckBox);
 		grid.Children.Add(changeButton);
 		grid.Children.Add(removeButton);
+
+		_pathRowControls[entry] = new PathRowControls
+		{
+			Row = grid,
+			PathTextBox = pathTextBox,
+			ContentsOnlyCheckBox = contentsOnlyCheckBox,
+			ChangeButton = changeButton,
+			IconButton = iconButton
+		};
+
+		if (entry.IsDeleted)
+			SetRowDeletedVisual(entry, true);
 
 		return grid;
 	}
@@ -721,9 +744,34 @@ public sealed partial class MainPage : Page
 
 	private void RemovePathRow(PathEntry entry, FrameworkElement row)
 	{
+		_pathRowControls.Remove(entry);
 		_pathEntries.Remove(entry);
 		PathsPanel.Children.Remove(row);
 		UpdateEmptyPathsHint();
+		RefreshCommandPreview();
+		RecalculatePathStats();
+	}
+
+	private void SetRowDeletedVisual(PathEntry entry, bool isDeleted)
+	{
+		if (!_pathRowControls.TryGetValue(entry, out var controls))
+			return;
+
+		controls.PathTextBox.IsEnabled = !isDeleted;
+		controls.ContentsOnlyCheckBox.IsEnabled = !isDeleted;
+		controls.ChangeButton.IsEnabled = !isDeleted;
+		controls.IconButton.IsEnabled = !isDeleted;
+		controls.Row.Opacity = isDeleted ? 0.5 : 1.0;
+	}
+
+	private void MarkProcessedPathsAsDeleted()
+	{
+		foreach (var entry in _pathEntries.Where(p => !p.IsDeleted))
+		{
+			entry.IsDeleted = true;
+			SetRowDeletedVisual(entry, true);
+		}
+
 		RefreshCommandPreview();
 		RecalculatePathStats();
 	}
@@ -759,7 +807,10 @@ public sealed partial class MainPage : Page
 		_statsInProgress = true;
 		_lastStats = default;
 
-		var snapshot = _pathEntries.Select(p => (p.Path, p.IsDirectory)).ToList();
+		var snapshot = _pathEntries
+			.Where(p => !p.IsDeleted)
+			.Select(p => (p.Path, p.IsDirectory))
+			.ToList();
 
 		var progress = new Progress<PathStats>(stats =>
 		{
@@ -877,7 +928,8 @@ public sealed partial class MainPage : Page
 		_options.SdeleteFolderPath = string.IsNullOrWhiteSpace(SdeleteFolderTextBox.Text) ? null : SdeleteFolderTextBox.Text;
 		_options.Passes = double.IsNaN(PassesNumberBox.Value) ? 1 : (int)PassesNumberBox.Value;
 
-		_options.TargetPaths = _pathEntries.ToList();
+		// _options.TargetPaths = _pathEntries.ToList();
+		_options.TargetPaths = _pathEntries.Where(p => !p.IsDeleted).ToList();
 		_options.Recursive = RecurseCheckBox.IsChecked == true;
 		_options.RemoveReadOnlyAttribute = RemoveReadOnlyCheckBox.IsChecked == true;
 
@@ -1146,7 +1198,12 @@ public sealed partial class MainPage : Page
 			AppendOutputLine(Loc.Format("RunCommandCompleted", exitCode));
 
 			if (exitCode == 0)
+			{
 				SetStatusCompleted(exitCode);
+
+				if (_options.Mode == SDeleteMode.DeleteFiles)
+					MarkProcessedPathsAsDeleted();
+			}
 			else if (_stopRequestedByUser)
 				SetStatusStopped();
 			else
