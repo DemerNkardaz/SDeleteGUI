@@ -106,6 +106,15 @@
   <data name="ZeroFillRadio.Content" xml:space="preserve">
     <value>Заполнить нулями</value>
   </data>
+  <data name="HideNotRecommendedCheckBox.Content" xml:space="preserve">
+    <value>Скрыть нерекомендуемое</value>
+  </data>
+  <data name="EmptyDrivesHintFilteredText" xml:space="preserve">
+    <value>Все диски скрыты фильтром «Скрыть нерекомендуемое». Снимите галку, чтобы увидеть их.</value>
+  </data>
+  <data name="EmptyDrivesHintNoneText" xml:space="preserve">
+    <value>Диски не найдены.</value>
+  </data>
   <data name="CleanFreeRadio.Content" xml:space="preserve">
     <value>Очистить</value>
   </data>

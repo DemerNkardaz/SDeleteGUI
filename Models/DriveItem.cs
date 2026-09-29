@@ -16,6 +16,7 @@ public class DriveItem
 	public long FreeSpace { get; set; }
 	public string TypeLabel { get; set; } = string.Empty;
 	public bool IsFlashBased { get; set; }
+	public bool IsRecommendedForClean { get; set; } = true;
 
 	public double UsedPercent =>
 		TotalSize > 0 ? (double)(TotalSize - FreeSpace) / TotalSize * 100 : 0;

@@ -106,6 +106,15 @@
   <data name="ZeroFillRadio.Content" xml:space="preserve">
     <value>Zero fill</value>
   </data>
+  <data name="HideNotRecommendedCheckBox.Content" xml:space="preserve">
+    <value>Hide not recommended</value>
+  </data>
+  <data name="EmptyDrivesHintFilteredText" xml:space="preserve">
+    <value>All drives are hidden by the “Hide not recommended” filter. Uncheck it to see them.</value>
+  </data>
+  <data name="EmptyDrivesHintNoneText" xml:space="preserve">
+    <value>No drives found.</value>
+  </data>
   <data name="CleanFreeRadio.Content" xml:space="preserve">
     <value>Clean</value>
   </data>

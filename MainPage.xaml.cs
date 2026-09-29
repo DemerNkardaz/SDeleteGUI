@@ -26,6 +26,8 @@ public sealed partial class MainPage : Page
 
 	private readonly ObservableCollection<DriveItem> _drives = new();
 
+	private readonly ObservableCollection<DriveItem> _visibleDrives = new();
+
 	private bool _isReady;
 
 	private bool _isRunning;
@@ -39,6 +41,9 @@ public sealed partial class MainPage : Page
 	private Brush? _originalButtonPressedBackground;
 
 	private readonly StringBuilder _outputBuffer = new();
+	private readonly DispatcherTimer _outputFlushTimer;
+	private bool _outputDirty;
+	private const int MaxOutputBufferChars = 2_000_000;
 
 	private ScrollViewer? _outputScrollViewer;
 
@@ -47,6 +52,10 @@ public sealed partial class MainPage : Page
 	public MainPage()
 	{
 		InitializeComponent();
+
+		_outputFlushTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
+		_outputFlushTimer.Tick += (_, _) => FlushOutputToUi();
+		_outputFlushTimer.Start();
 
 		Loaded += async (_, _) =>
 		{
@@ -61,12 +70,13 @@ public sealed partial class MainPage : Page
 
 		RunButton.Content = Loc.Get("RunButton");
 
-		DrivesGridView.ItemsSource = _drives;
+		DrivesGridView.ItemsSource = _visibleDrives;
 
 		LoadDrives();
 
 		var settings = SettingsService.Load();
 		ApplySettingsToUI(settings);
+		ApplyDriveVisibilityFilter();
 		UpdateSdeletePresenceWarning();
 
 		ApplyStartupArguments(App.StartupArguments);
@@ -209,7 +219,15 @@ public sealed partial class MainPage : Page
 		else if (driveArgs.Count > 0)
 		{
 			MainPivot.SelectedIndex = 1;
-			foreach (var item in _drives.Where(d => driveArgs.Contains(d.DriveLetter, StringComparer.OrdinalIgnoreCase)))
+
+			var requested = _drives.Where(d => driveArgs.Contains(d.Name, StringComparer.OrdinalIgnoreCase)).ToList();
+			if (requested.Any(d => !d.IsRecommendedForClean))
+			{
+				HideNotRecommendedCheckBox.IsChecked = false;
+				ApplyDriveVisibilityFilter();
+			}
+
+			foreach (var item in requested)
 				DrivesGridView.SelectedItems.Add(item);
 		}
 	}
@@ -219,6 +237,7 @@ public sealed partial class MainPage : Page
 	private void RefreshDrivesButton_Click(object sender, RoutedEventArgs e)
 	{
 		LoadDrives();
+		ApplyDriveVisibilityFilter();
 		RefreshCommandPreview();
 	}
 
@@ -244,11 +263,45 @@ public sealed partial class MainPage : Page
 				TypeLabel = DriveTypeDetector.GetLabel(kind),
 				IsFlashBased = kind is DriveKind.Ssd or DriveKind.Flash,
 				TotalSize = drive.TotalSize,
-				FreeSpace = drive.TotalFreeSpace
+				FreeSpace = drive.TotalFreeSpace,
+				IsRecommendedForClean = kind is not (DriveKind.Ssd or DriveKind.Flash or DriveKind.Network or DriveKind.CdRom),
 			});
 		}
 	}
 
+	private void ApplyDriveVisibilityFilter()
+	{
+		var hideNotRecommended = HideNotRecommendedCheckBox.IsChecked == true;
+
+		_visibleDrives.Clear();
+		foreach (var drive in _drives)
+		{
+			if (!hideNotRecommended || drive.IsRecommendedForClean)
+				_visibleDrives.Add(drive);
+		}
+
+		if (_drives.Count == 0)
+		{
+			EmptyDrivesHint.Text = Loc.Get("EmptyDrivesHintNoneText");
+			EmptyDrivesHint.Visibility = Visibility.Visible;
+		}
+		else if (_visibleDrives.Count == 0)
+		{
+			EmptyDrivesHint.Text = Loc.Get("EmptyDrivesHintFilteredText");
+			EmptyDrivesHint.Visibility = Visibility.Visible;
+		}
+		else
+		{
+			EmptyDrivesHint.Visibility = Visibility.Collapsed;
+		}
+	}
+
+	private void OnHideNotRecommendedChanged(object sender, RoutedEventArgs e)
+	{
+		if (!_isReady) return;
+		ApplyDriveVisibilityFilter();
+		RefreshCommandPreview();
+	}
 	private static string GetGlyphForDriveType(DriveType type) => type switch
 	{
 		DriveType.Removable => "\uE88E",
@@ -529,36 +582,57 @@ public sealed partial class MainPage : Page
 		Image iconImage,
 		FontIcon iconFallback)
 	{
-		var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
-		picker.FileTypeFilter.Add("*");
-		InitializeWithWindow.Initialize(picker, GetWindowHandle());
+		string? newPath;
+		bool isDirectory = entry.IsDirectory;
 
-		var file = await picker.PickSingleFileAsync();
-		if (file != null)
+		if (isDirectory)
 		{
-			if (SystemPathGuard.IsProtected(file.Path))
-			{
-				_blockedPaths.Add(file.Path);
-				await ShowBlockedPathsWarningAsync();
-				return;
-			}
+			var picker = new FolderPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
+			picker.FileTypeFilter.Add("*");
+			InitializeWithWindow.Initialize(picker, GetWindowHandle());
 
-			entry.Path = file.Path;
-			entry.IsDirectory = false;
-			entry.ContentsOnly = false;
-			pathTextBox.Text = file.Path;
-			contentsOnlyCheckBox.IsChecked = false;
-			contentsOnlyCheckBox.Visibility = Visibility.Collapsed;
-
-			iconImage.Source = null;
-			iconImage.Visibility = Visibility.Collapsed;
-			iconFallback.Glyph = "\uE8A5";
-			iconFallback.Visibility = Visibility.Visible;
-			_ = LoadPathIconAsync(entry, iconImage, iconFallback);
-
-			RefreshCommandPreview();
-			RecalculatePathStats();
+			var folder = await picker.PickSingleFolderAsync();
+			if (folder is null) return;
+			newPath = folder.Path;
 		}
+		else
+		{
+			var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.ComputerFolder };
+			picker.FileTypeFilter.Add("*");
+			InitializeWithWindow.Initialize(picker, GetWindowHandle());
+
+			var file = await picker.PickSingleFileAsync();
+			if (file is null) return;
+			newPath = file.Path;
+		}
+
+		if (SystemPathGuard.IsProtected(newPath))
+		{
+			_blockedPaths.Add(newPath);
+			await ShowBlockedPathsWarningAsync();
+			return;
+		}
+
+		if (_pathEntries.Any(p => !ReferenceEquals(p, entry) &&
+			string.Equals(p.Path, newPath, StringComparison.OrdinalIgnoreCase)))
+		{
+			return;
+		}
+
+		entry.Path = newPath;
+		entry.ContentsOnly = false;
+		pathTextBox.Text = newPath;
+		contentsOnlyCheckBox.IsChecked = false;
+		contentsOnlyCheckBox.Visibility = isDirectory ? Visibility.Visible : Visibility.Collapsed;
+
+		iconImage.Source = null;
+		iconImage.Visibility = Visibility.Collapsed;
+		iconFallback.Glyph = isDirectory ? "\uE8B7" : "\uE8A5";
+		iconFallback.Visibility = Visibility.Visible;
+		_ = LoadPathIconAsync(entry, iconImage, iconFallback);
+
+		RefreshCommandPreview();
+		RecalculatePathStats();
 	}
 
 	private static async Task LoadPathIconAsync(PathEntry entry, Image image, FontIcon fallback)
@@ -830,6 +904,7 @@ public sealed partial class MainPage : Page
 			_outputBuffer.AppendLine(previewText);
 
 			OutputTextBox.Text = previewText;
+			_outputDirty = false;
 		}
 		catch (Exception ex)
 		{
@@ -838,6 +913,7 @@ public sealed partial class MainPage : Page
 			ResetProgressTracking();
 			_outputBuffer.AppendLine(errorText);
 			OutputTextBox.Text = errorText;
+			_outputDirty = false;
 		}
 	}
 
@@ -888,6 +964,7 @@ public sealed partial class MainPage : Page
 			_isRunning = false;
 			UpdateRunButtonVisual();
 			SetUiEnabled(true);
+			FlushOutputToUi();
 			RecalculatePathStats();
 		}
 	}
@@ -1139,6 +1216,21 @@ public sealed partial class MainPage : Page
 		_outputBuffer.AppendLine(line);
 		_lastProgress = progress;
 
+		if (_outputBuffer.Length > MaxOutputBufferChars)
+		{
+			var overflow = _outputBuffer.Length - MaxOutputBufferChars;
+			_outputBuffer.Remove(0, overflow);
+			_lastLineStart = Math.Max(0, _lastLineStart - overflow);
+		}
+
+		_outputDirty = true;
+	}
+
+	private void FlushOutputToUi()
+	{
+		if (!_outputDirty)
+			return;
+
 		OutputTextBox.Text = _outputBuffer.ToString();
 
 		OutputTextBox.SelectionStart = OutputTextBox.Text.Length;
@@ -1146,6 +1238,8 @@ public sealed partial class MainPage : Page
 
 		_outputScrollViewer ??= FindDescendant<ScrollViewer>(OutputTextBox);
 		_outputScrollViewer?.ChangeView(null, _outputScrollViewer.ScrollableHeight, null, disableAnimation: true);
+
+		_outputDirty = false;
 	}
 
 	private void UpdateSdeletePresenceWarning()
@@ -1217,6 +1311,8 @@ public sealed partial class MainPage : Page
 		MainPivot.SelectedIndex = string.Equals(settings.Mode, "CleanFreeSpace", StringComparison.OrdinalIgnoreCase)
 			? 1
 			: 0;
+
+		HideNotRecommendedCheckBox.IsChecked = settings.HideNotRecommendedDrives;
 	}
 
 	private AppSettings CollectSettingsFromUI()
@@ -1232,7 +1328,8 @@ public sealed partial class MainPage : Page
 			Mode = MainPivot.SelectedIndex == 0 ? "DeleteFiles" : "CleanFreeSpace",
 			Recursive = RecurseCheckBox.IsChecked == true,
 			RemoveReadOnlyAttribute = RemoveReadOnlyCheckBox.IsChecked == true,
-			CleanMode = ZeroFillRadio.IsChecked == true ? "ZeroFill" : "CleanFree"
+			CleanMode = ZeroFillRadio.IsChecked == true ? "ZeroFill" : "CleanFree",
+			HideNotRecommendedDrives = HideNotRecommendedCheckBox.IsChecked == true,
 		};
 	}
 

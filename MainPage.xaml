@@ -250,6 +250,14 @@
                                     </DataTemplate>
                                 </GridView.ItemTemplate>
                             </GridView>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                      x:Name="EmptyDrivesHint"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Top"
+                                      Margin="0,24,0,0"
+                                      TextWrapping="Wrap"
+                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                      Visibility="Collapsed"/>
                         </Grid>
                     </Border>
 
@@ -264,6 +272,9 @@
                           <TextBlock x:Uid="CleanModeLabel" VerticalAlignment="Center"/>
                           <RadioButton x:Name="ZeroFillRadio" x:Uid="ZeroFillRadio" GroupName="CleanMode" Checked="OnOptionChanged" Unchecked="OnOptionChanged"/> <!-- -z -->
                           <RadioButton x:Name="CleanFreeRadio" x:Uid="CleanFreeRadio" GroupName="CleanMode" IsChecked="True" Checked="OnOptionChanged" Unchecked="OnOptionChanged"/> <!-- -c -->
+                          <CheckBox x:Name="HideNotRecommendedCheckBox" x:Uid="HideNotRecommendedCheckBox"
+                                    IsChecked="True"
+                                    Checked="OnHideNotRecommendedChanged" Unchecked="OnHideNotRecommendedChanged"/>
                       </StackPanel>
                     </Border>
                 </Grid>

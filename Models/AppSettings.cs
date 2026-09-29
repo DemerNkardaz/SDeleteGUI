@@ -22,4 +22,6 @@ public class AppSettings
     public bool RemoveReadOnlyAttribute { get; set; }
 
     public string CleanMode { get; set; } = "CleanFree";
+
+	public bool HideNotRecommendedDrives { get; set; } = true;
 }
