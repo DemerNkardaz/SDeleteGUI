@@ -279,6 +279,11 @@
     <value>МБ</value>
   </data>
 
+  <data name="NotifyCompletedTitle" xml:space="preserve"><value>Операция завершена</value></data>
+  <data name="NotifyStoppedTitle" xml:space="preserve"><value>Операция остановлена</value></data>
+  <data name="NotifyErrorTitle" xml:space="preserve"><value>Операция завершилась с ошибкой</value></data>
+  <data name="NotifyBody" xml:space="preserve"><value>Время выполнения: {0}</value></data>
+
   <data name="AuthorName" xml:space="preserve">
     <value>Ялла Нкардаз</value>
   </data>

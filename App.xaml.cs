@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.Windows.Globalization;
+using SDeleteGUI.Services;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -41,6 +42,8 @@ public partial class App : Application
 
 		// ApplicationLanguages.PrimaryLanguageOverride = "en-US";
         InitializeComponent();
+
+		AppNotifier.EnsureRegistered();
 
 		UnhandledException += App_UnhandledException;
 

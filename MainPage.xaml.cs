@@ -33,6 +33,8 @@ public sealed partial class MainPage : Page
 	private DispatcherTimer? _statusTimer;
 	private DateTime _processStartTime;
 
+	private bool _stopRequestedByUser;
+
 	private Brush? _originalButtonPointerOverBackground;
 	private Brush? _originalButtonPressedBackground;
 
@@ -300,6 +302,9 @@ public sealed partial class MainPage : Page
 		var files = await picker.PickMultipleFilesAsync();
 		foreach (var file in files)
 		{
+			if (_pathEntries.Any(p => string.Equals(p.Path, file.Path, StringComparison.OrdinalIgnoreCase)))
+				continue;
+
 			AddPathRow(file.Path, isDirectory: false);
 		}
 
@@ -315,7 +320,9 @@ public sealed partial class MainPage : Page
 		var folder = await picker.PickSingleFolderAsync();
 		if (folder != null)
 		{
-			AddPathRow(folder.Path, isDirectory: true);
+			if (!_pathEntries.Any(p => string.Equals(p.Path, folder.Path, StringComparison.OrdinalIgnoreCase)))
+				AddPathRow(folder.Path, isDirectory: true);
+
 			await ShowBlockedPathsWarningAsync();
 		}
 	}
@@ -845,6 +852,7 @@ public sealed partial class MainPage : Page
 	{
 		if (_isRunning)
 		{
+			_stopRequestedByUser = true;
 			PseudoConsoleProcessRunner.RequestStop();
 			return;
 		}
@@ -861,6 +869,7 @@ public sealed partial class MainPage : Page
 		if (!confirmed)
 			return;
 
+		_stopRequestedByUser = false;
 		StopPathStatsCounting();
 
 		_isRunning = true;
@@ -1016,7 +1025,7 @@ public sealed partial class MainPage : Page
 	/// </summary>
 	private async Task RunSDeleteAsync()
 	{
-		SetStatusRunning();
+		// SetStatusRunning();
 		var dispatcher = DispatcherQueue.GetForCurrentThread();
 		RefreshProcessPath();
 
@@ -1061,13 +1070,18 @@ public sealed partial class MainPage : Page
 
 			if (exitCode == 0)
 				SetStatusCompleted(exitCode);
-			else
+			else if (_stopRequestedByUser)
 				SetStatusStopped();
+			else
+				SetStatusCompleted(exitCode);
+
+			CompletionNotification(exitCode);
 		}
 		catch (Exception ex)
 		{
 			AppendOutputLine(Loc.Format("RunCommandError", ex.Message));
 			SetStatusStopped();
+			CompletionNotification(-1);
 		}
 	}
 
@@ -1159,7 +1173,6 @@ public sealed partial class MainPage : Page
 			SdeleteNotFoundInfoBar.Message = Loc.Get("SdeleteNotFound");
 			SdeleteNotFoundInfoBar.IsOpen = true;
 		}
-		System.Diagnostics.Debug.WriteLine($"[SdeleteCheck] found={found}");
 	}
 
 	private static bool IsExecutableInPath(string fileName)
@@ -1234,5 +1247,20 @@ public sealed partial class MainPage : Page
 		{
 			System.Diagnostics.Debug.WriteLine($"SaveSettingsOnClose failed: {ex}");
 		}
+	}
+
+	private void CompletionNotification(int exitCode)
+	{
+		var elapsed = DateTime.Now - _processStartTime;
+		if (elapsed.TotalSeconds < 30)
+			return;
+
+		var title = exitCode == 0
+			? Loc.Get("NotifyCompletedTitle")
+			: _stopRequestedByUser
+				? Loc.Get("NotifyStoppedTitle")
+				: Loc.Get("NotifyErrorTitle");
+
+		AppNotifier.NotifyCompleted(title, Loc.Format("NotifyBody", elapsed.ToString(@"hh\:mm\:ss")));
 	}
 }

@@ -279,6 +279,11 @@ Do you want to stop and exit?</value>
     <value>MB</value>
   </data>
 
+  <data name="NotifyCompletedTitle" xml:space="preserve"><value>Operation completed</value></data>
+  <data name="NotifyStoppedTitle" xml:space="preserve"><value>Operation stopped</value></data>
+  <data name="NotifyErrorTitle" xml:space="preserve"><value>Operation failed</value></data>
+  <data name="NotifyBody" xml:space="preserve"><value>Duration: {0}</value></data>
+
   <data name="AuthorName" xml:space="preserve">
     <value>Yalla Nkardaz</value>
   </data>
